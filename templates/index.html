@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Sentinel AI</title>
+    <title>Security Sentinel AI - Forensic Mode</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <style>
         /* ============================================
            CSS VARIABLES - NATURAL COLOR PALETTE
@@ -19,6 +20,7 @@
             --soft-gray: #4A5568;
             --light-sage: #E8F4EA;
             --accent-green: #5A8D5E;
+            --alert-red: #EF4444;
             --border-radius: 12px;
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
             --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
@@ -72,6 +74,11 @@
             font-size: 2.5rem;
         }
 
+        .header-badges {
+            display: flex;
+            gap: 1rem;
+        }
+
         .status-badge {
             background: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(10px);
@@ -87,6 +94,11 @@
             animation: pulse 2s ease-in-out infinite;
         }
 
+        .status-badge.alert {
+            background: var(--alert-red);
+            animation: flashAlert 1s ease-in-out infinite;
+        }
+
         .status-indicator {
             width: 10px;
             height: 10px;
@@ -95,9 +107,33 @@
             box-shadow: 0 0 10px #4ADE80;
         }
 
+        .status-indicator.alert {
+            background: white;
+            box-shadow: 0 0 15px white;
+        }
+
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes flashAlert {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
         }
 
         /* ============================================
@@ -107,6 +143,145 @@
             max-width: 1400px;
             margin: 2rem auto;
             padding: 0 2rem;
+        }
+
+        /* ============================================
+           MODE SELECTOR
+           ============================================ */
+        .mode-selector {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+        }
+
+        .mode-selector h2 {
+            color: var(--sage-green);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--light-sage);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--soft-gray);
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--sage-green);
+            transform: translateY(-2px);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, var(--sage-green), var(--accent-green));
+            color: white;
+            border-color: var(--sage-green);
+        }
+
+        .upload-section {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #E5E7EB;
+        }
+
+        .upload-section.active {
+            display: block;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 1rem;
+            background: var(--light-sage);
+            border: 2px dashed var(--sage-green);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--soft-gray);
+            font-weight: 500;
+        }
+
+        .file-input-label:hover {
+            background: #D4E8D6;
+            border-color: var(--accent-green);
+        }
+
+        .file-name {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--slate-blue);
+            font-weight: 500;
+        }
+
+        .upload-btn {
+            margin-top: 1rem;
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, var(--slate-blue), #5A7A9E);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .upload-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(107, 140, 174, 0.3);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .upload-status {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+
+        .upload-status.success {
+            background: #D1FAE5;
+            color: #065F46;
+            display: block;
+        }
+
+        .upload-status.error {
+            background: #FEE2E2;
+            color: #991B1B;
+            display: block;
         }
 
         /* ============================================
@@ -149,6 +324,35 @@
             width: 100%;
             height: auto;
             display: block;
+        }
+
+        .download-section {
+            margin-top: 1.5rem;
+            text-align: center;
+            display: none;
+        }
+
+        .download-section.active {
+            display: block;
+        }
+
+        .download-btn {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, var(--sage-green), var(--accent-green));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(122, 157, 126, 0.3);
         }
 
         /* ============================================
@@ -241,6 +445,7 @@
                 opacity: 0;
                 transform: translateX(-10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -262,30 +467,54 @@
                 justify-content: center;
             }
 
+            .header-badges {
+                flex-direction: column;
+                width: 100%;
+            }
+
             .container {
                 padding: 0 1rem;
             }
 
             .video-section,
-            .logs-section {
+            .logs-section,
+            .mode-selector {
                 padding: 1.5rem;
             }
 
             .logs-container {
                 max-height: 300px;
             }
+
+            .mode-toggle {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
+
 <body>
+    <!-- Hidden audio element for alarm -->
+    <audio id="alarm-sound" preload="auto">
+        <!-- Using data URI for a simple beep sound -->
+        <source
+            src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUBIWU6nm8bVlHgU7k9n00H0pBiV7yPDglEILFGS56OyhUxEMTKXl8L9pJAU1jtv01n8oBSyCz/PZiTUGGWS56+mgUxQNUavi8bZmHgQ7k9j01H4qBSV8y/DglUILFGW5n==" />
+    </audio>
+
     <!-- ============================================
          HEADER
          ============================================ -->
     <header class="header">
-        <h1>Security Sentinel AI</h1>
-        <div class="status-badge">
-            <div class="status-indicator"></div>
-            <span>System Active</span>
+        <h1>Security Sentinel AI<span style="font-size: 0.6em; margin-left: 0.5rem;">Forensic Mode</span></h1>
+        <div class="header-badges">
+            <div class="status-badge" id="system-status">
+                <div class="status-indicator"></div>
+                <span>System Active</span>
+            </div>
+            <div class="status-badge alert" id="alert-status" style="display: none;">
+                <div class="status-indicator alert"></div>
+                <span>🚨 RECORDING ALERT</span>
+            </div>
         </div>
     </header>
 
@@ -293,11 +522,47 @@
          MAIN CONTENT
          ============================================ -->
     <div class="container">
+        <!-- Mode Selector -->
+        <section class="mode-selector">
+            <h2>Select Mode</h2>
+            <div class="mode-toggle">
+                <button class="mode-btn active" id="btn-live" onclick="switchMode('live')">
+                    📹 Live Webcam
+                </button>
+                <button class="mode-btn" id="btn-upload" onclick="switchMode('upload')">
+                    📤 Upload Video
+                </button>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="upload-section" id="upload-section">
+                <div class="file-input-wrapper">
+                    <input type="file" id="video-file" class="file-input" accept=".mp4,.avi,.mov,.mkv"
+                        onchange="handleFileSelect(event)">
+                    <label for="video-file" class="file-input-label">
+                        📁 Click to select video file (MP4, AVI, MOV, MKV)
+                    </label>
+                    <div class="file-name" id="file-name"></div>
+                </div>
+                <button class="upload-btn" id="upload-btn" onclick="uploadVideo()" disabled>
+                    Upload & Process Video
+                </button>
+                <div class="upload-status" id="upload-status"></div>
+            </div>
+        </section>
+
         <!-- Video Feed Section -->
         <section class="video-section">
-            <h2>Live Camera Feed</h2>
+            <h2 id="video-title">Live Camera Feed</h2>
             <div class="video-container">
-                <img src="{{ url_for('video_feed') }}" alt="Live Video Feed">
+                <img src="{{ url_for('video_feed', mode='camera') }}" alt="Live Video Feed" id="video-feed">
+            </div>
+
+            <!-- Download Processed Video -->
+            <div class="download-section" id="download-section">
+                <a href="/download_processed" class="download-btn" download>
+                    ⬇️ Download Processed Video
+                </a>
             </div>
         </section>
 
@@ -311,12 +576,147 @@
     </div>
 
     <!-- ============================================
-         JAVASCRIPT - LIVE LOG UPDATES
+         JAVASCRIPT - FORENSIC FEATURES
          ============================================ -->
     <script>
-        // Fetch logs from server every 500ms
+        let currentMode = 'live';
         let previousLogCount = 0;
+        let selectedFile = null;
+        let processingInterval = null;
+        let alarmSound = document.getElementById('alarm-sound');
+        let lastThreatCheck = false;
 
+        // Mode switching
+        function switchMode(mode) {
+            currentMode = mode;
+
+            document.getElementById('btn-live').classList.toggle('active', mode === 'live');
+            document.getElementById('btn-upload').classList.toggle('active', mode === 'upload');
+            document.getElementById('upload-section').classList.toggle('active', mode === 'upload');
+
+            if (mode === 'live') {
+                document.getElementById('video-title').textContent = 'Live Camera Feed';
+                document.getElementById('video-feed').src = '/video_feed/camera?' + new Date().getTime();
+                document.getElementById('download-section').classList.remove('active');
+                stopProcessingCheck();
+            }
+        }
+
+        // File selection
+        function handleFileSelect(event) {
+            selectedFile = event.target.files[0];
+            if (selectedFile) {
+                document.getElementById('file-name').textContent = `Selected: ${selectedFile.name}`;
+                document.getElementById('upload-btn').disabled = false;
+            }
+        }
+
+        // Upload and process video
+        function uploadVideo() {
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('video', selectedFile);
+
+            const uploadBtn = document.getElementById('upload-btn');
+            const statusDiv = document.getElementById('upload-status');
+
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+            statusDiv.className = 'upload-status';
+            statusDiv.style.display = 'none';
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        statusDiv.className = 'upload-status success';
+                        statusDiv.textContent = '✅ Video uploaded! Processing started...';
+
+                        document.getElementById('video-title').textContent = 'Processing Uploaded Video';
+                        document.getElementById('video-feed').src = '/video_feed/upload?' + new Date().getTime();
+
+                        startProcessingCheck();
+                    } else {
+                        statusDiv.className = 'upload-status error';
+                        statusDiv.textContent = '❌ ' + (data.error || 'Upload failed');
+                    }
+                })
+                .catch(error => {
+                    statusDiv.className = 'upload-status error';
+                    statusDiv.textContent = '❌ Upload error: ' + error.message;
+                })
+                .finally(() => {
+                    uploadBtn.disabled = false;
+                    uploadBtn.textContent = 'Upload & Process Video';
+                });
+        }
+
+        // Check threat status and trigger alarm
+        function checkThreatStatus() {
+            fetch('/threat_status')
+                .then(response => response.json())
+                .then(data => {
+                    const alertBadge = document.getElementById('alert-status');
+
+                    if (data.active_threat) {
+                        // Show alert badge
+                        alertBadge.style.display = 'flex';
+
+                        // Play alarm sound (only on first detection)
+                        if (!lastThreatCheck) {
+                            playAlarm();
+                        }
+                        lastThreatCheck = true;
+                    } else {
+                        // Hide alert badge
+                        alertBadge.style.display = 'none';
+                        lastThreatCheck = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking threat status:', error);
+                });
+        }
+
+        // Play alarm sound
+        function playAlarm() {
+            try {
+                alarmSound.currentTime = 0;
+                alarmSound.play().catch(e => {
+                    console.log('Audio play failed (may require user interaction):', e);
+                });
+            } catch (e) {
+                console.error('Error playing alarm:', e);
+            }
+        }
+
+        // Check if video processing is complete
+        function startProcessingCheck() {
+            processingInterval = setInterval(() => {
+                fetch('/processing_status')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.complete) {
+                            document.getElementById('download-section').classList.add('active');
+                            document.getElementById('upload-status').textContent = '✅ Processing complete! You can download the result below.';
+                            stopProcessingCheck();
+                        }
+                    });
+            }, 2000);
+        }
+
+        function stopProcessingCheck() {
+            if (processingInterval) {
+                clearInterval(processingInterval);
+                processingInterval = null;
+            }
+        }
+
+        // Fetch logs from server
         function fetchLogs() {
             fetch('/logs')
                 .then(response => response.json())
@@ -329,7 +729,6 @@
                         return;
                     }
 
-                    // Clear container and add logs
                     logsContainer.innerHTML = '';
                     logs.forEach(log => {
                         const logEntry = document.createElement('div');
@@ -338,7 +737,6 @@
                         logsContainer.appendChild(logEntry);
                     });
 
-                    // Auto-scroll to bottom if new logs added
                     if (logs.length > previousLogCount) {
                         logsContainer.scrollTop = logsContainer.scrollHeight;
                         previousLogCount = logs.length;
@@ -351,9 +749,12 @@
 
         // Initial fetch
         fetchLogs();
+        checkThreatStatus();
 
         // Poll every 500ms
         setInterval(fetchLogs, 500);
+        setInterval(checkThreatStatus, 500);
     </script>
 </body>
+
 </html>
