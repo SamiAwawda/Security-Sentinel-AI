@@ -170,9 +170,11 @@ def record_alert_video(threat_type):
         fps = max(ESTIMATED_FPS, 15)  # Ensure minimum 15 FPS
         video_writer = cv2.VideoWriter(video_path, fourcc, fps, (width, height))
         
-        # Write pre-event frames
-        print(f"📹 Writing {len(pre_frames)} pre-event frames...")
+        # CRITICAL: Write pre-event frames (ALREADY ANNOTATED from ring buffer)
+        # These frames were stored with bounding boxes in frame_buffer (line 401)
+        print(f"📹 Writing {len(pre_frames)} pre-event frames WITH ANNOTATIONS...")
         for frame in pre_frames:
+            # Each frame already has YOLO bounding boxes burned in
             video_writer.write(frame)
         
         # Record post-event frames (5 seconds after detection)
@@ -188,9 +190,11 @@ def record_alert_video(threat_type):
                 success, frame = camera.read()
             
             if success:
-                # Run YOLO on post-event frames too
+                # CRITICAL: Run YOLO on post-event frames and annotate
                 results = model(frame, imgsz=INFERENCE_SIZE, verbose=False)
+                # results[0].plot() returns frame WITH bounding boxes drawn
                 annotated_frame = results[0].plot()
+                # Write annotated frame (WITH BOXES) to video file
                 video_writer.write(annotated_frame)
                 post_frames_count += 1
             else:
@@ -213,39 +217,36 @@ def record_alert_video(threat_type):
 # ============================================
 # TELEGRAM VIDEO ALERT SYSTEM
 # ============================================
-def send_telegram_video_alert(video_path, threat_type):
-    """Send video alert to Telegram chat using sendVideo"""
-    
-    if not os.path.exists(video_path):
-        print(f"❌ Video file not found: {video_path}")
-        return False
+def send_telegram_photo_alert(frame, threat_type):
+    """Send photo alert to Telegram chat (reverted from video for speed)"""
     
     try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendVideo"
+        # Encode frame as JPEG
+        _, img_encoded = cv2.imencode('.jpg', frame)
         
-        caption = f"🚨 FORENSIC ALERT: {threat_type}\n🕐 Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n📹 Pre-Event Recording: {PRE_EVENT_SECONDS}s before + {POST_EVENT_SECONDS}s after"
+        # Prepare Telegram API request
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
+        files = {'photo': ('threat.jpg', img_encoded.tobytes(), 'image/jpeg')}
+        data = {
+            'chat_id': CHAT_ID,
+            'caption': f"🚨 THREAT DETECTED: {threat_type}\n🕐 Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n📹 Forensic video saved locally"
+        }
         
-        with open(video_path, 'rb') as video_file:
-            files = {'video': video_file}
-            data = {
-                'chat_id': CHAT_ID,
-                'caption': caption,
-                'supports_streaming': True
-            }
-            
-            print(f"📤 Sending video to Telegram...")
-            response = requests.post(url, files=files, data=data, timeout=60)
+        # Send request
+        response = requests.post(url, files=files, data=data, timeout=10)
         
         if response.status_code == 200:
-            print(f"✅ Telegram video alert sent: {threat_type}")
+            print(f"✅ Telegram photo alert sent: {threat_type}")
             return True
         else:
             print(f"❌ Telegram API error: {response.status_code} - {response.text}")
             return False
             
     except Exception as e:
-        print(f"❌ Error sending Telegram video: {e}")
+        print(f"❌ Error sending Telegram photo: {e}")
         return False
+
+
 
 def handle_threat_detection(frame, threat_type):
     """Handle threat detection: record video and send to Telegram"""
@@ -274,18 +275,20 @@ def handle_threat_detection(frame, threat_type):
     if len(detection_logs) > 50:
         detection_logs.pop(0)
     
-    # Start recording in separate thread
-    def record_and_send():
+    # Send Telegram photo alert immediately (fast, non-blocking)
+    threading.Thread(target=send_telegram_photo_alert, args=(frame.copy(), threat_type), daemon=True).start()
+    
+    # Start forensic video recording in separate thread
+    def record_video():
         global active_threat
         video_path = record_alert_video(threat_type)
-        if video_path:
-            send_telegram_video_alert(video_path, threat_type)
+        # Video saved locally, no Telegram upload
         
         # Clear threat flag after recording
         with threat_lock:
             active_threat = False
     
-    threading.Thread(target=record_and_send, daemon=True).start()
+    threading.Thread(target=record_video, daemon=True).start()
 
 # ============================================
 # THREAT DETECTION LOGIC
@@ -392,13 +395,15 @@ def generate_frames(source='camera'):
                             'confidence': confidence
                         })
                 
-                # Draw bounding boxes
+                # CRITICAL: Draw bounding boxes on frame
+                # results[0].plot() returns frame WITH YOLO annotations (boxes, labels, confidence)
                 annotated_frame = results[0].plot()
                 
-                # Add to ring buffer for forensic recording (camera mode only)
+                # CRITICAL: Add ANNOTATED frame to ring buffer (for pre-event recording)
+                # This ensures saved forensic videos contain bounding boxes
                 if source == 'camera':
                     with buffer_lock:
-                        frame_buffer.append(annotated_frame.copy())
+                        frame_buffer.append(annotated_frame.copy())  # Store WITH boxes
                 
                 # Check threat conditions
                 is_threat, threat_type = check_threat_conditions(detections)
@@ -406,9 +411,10 @@ def generate_frames(source='camera'):
                 if is_threat:
                     handle_threat_detection(frame.copy(), threat_type)
                 
-                # Write to output video if processing uploaded file
+                # CRITICAL: Write ANNOTATED frame to output video (uploaded file processing)
+                # This ensures downloaded processed videos contain bounding boxes
                 if video_writer is not None:
-                    video_writer.write(annotated_frame)
+                    video_writer.write(annotated_frame)  # Write WITH boxes
                 
                 # Encode frame as JPEG for streaming
                 _, buffer = cv2.imencode('.jpg', annotated_frame)
@@ -520,6 +526,103 @@ def download_processed():
 def processing_status():
     """Check if video processing is complete"""
     return jsonify({'complete': video_processing_complete})
+
+# ============================================
+# VIDEO GALLERY ROUTES
+# ============================================
+@app.route('/gallery')
+def gallery():
+    """Serve the video gallery page"""
+    return render_template('gallery.html')
+
+@app.route('/api/videos')
+def list_videos():
+    """List all saved forensic videos with metadata"""
+    try:
+        videos = []
+        
+        # Get all videos from alerts folder
+        if os.path.exists(app.config['ALERT_VIDEO_FOLDER']):
+            for filename in os.listdir(app.config['ALERT_VIDEO_FOLDER']):
+                if filename.endswith(('.mp4', '.avi')):
+                    filepath = os.path.join(app.config['ALERT_VIDEO_FOLDER'], filename)
+                    file_stats = os.stat(filepath)
+                    
+                    videos.append({
+                        'filename': filename,
+                        'size': file_stats.st_size,
+                        'size_mb': round(file_stats.st_size / (1024 * 1024), 2),
+                        'created': datetime.fromtimestamp(file_stats.st_ctime).strftime('%Y-%m-%d %H:%M:%S'),
+                        'folder': 'alerts'
+                    })
+        
+        # Get all processed videos
+        if os.path.exists(app.config['PROCESSED_FOLDER']):
+            for filename in os.listdir(app.config['PROCESSED_FOLDER']):
+                if filename.endswith(('.mp4', '.avi')):
+                    filepath = os.path.join(app.config['PROCESSED_FOLDER'], filename)
+                    file_stats = os.stat(filepath)
+                    
+                    videos.append({
+                        'filename': filename,
+                        'size': file_stats.st_size,
+                        'size_mb': round(file_stats.st_size / (1024 * 1024), 2),
+                        'created': datetime.fromtimestamp(file_stats.st_ctime).strftime('%Y-%m-%d %H:%M:%S'),
+                        'folder': 'processed'
+                    })
+        
+        # Sort by creation time (newest first)
+        videos.sort(key=lambda x: x['created'], reverse=True)
+        
+        return jsonify({'videos': videos, 'count': len(videos)})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/video/<folder>/<filename>')
+def serve_video(folder, filename):
+    """Serve a video file for playback"""
+    # Validate folder
+    if folder not in ['alerts', 'processed']:
+        return "Invalid folder", 400
+    
+    # Map folder names to actual paths
+    folder_map = {
+        'alerts': app.config['ALERT_VIDEO_FOLDER'],
+        'processed': app.config['PROCESSED_FOLDER']
+    }
+    
+    video_path = os.path.join(folder_map[folder], secure_filename(filename))
+    
+    if not os.path.exists(video_path):
+        return "Video not found", 404
+    
+    return send_file(video_path, mimetype='video/mp4')
+
+@app.route('/delete_video/<folder>/<filename>', methods=['DELETE'])
+def delete_video(folder, filename):
+    """Delete a video file"""
+    try:
+        # Validate folder
+        if folder not in ['alerts', 'processed']:
+            return jsonify({'error': 'Invalid folder'}), 400
+        
+        folder_map = {
+            'alerts': app.config['ALERT_VIDEO_FOLDER'],
+            'processed': app.config['PROCESSED_FOLDER']
+        }
+        
+        video_path = os.path.join(folder_map[folder], secure_filename(filename))
+        
+        if not os.path.exists(video_path):
+            return jsonify({'error': 'Video not found'}), 404
+        
+        # Delete the file
+        os.remove(video_path)
+        print(f"🗑️ Deleted video: {filename}")
+        
+        return jsonify({'success': True, 'message': f'Video {filename} deleted'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # ============================================
 # CLEANUP & SIGNAL HANDLING
