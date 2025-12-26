@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Sentinel AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============================================
+           CSS VARIABLES - NATURAL COLOR PALETTE
+           ============================================ */
+        :root {
+            --sage-green: #7A9D7E;
+            --slate-blue: #6B8CAE;
+            --off-white: #F5F7F7;
+            --soft-gray: #4A5568;
+            --light-sage: #E8F4EA;
+            --accent-green: #5A8D5E;
+            --border-radius: 12px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ============================================
+           GLOBAL STYLES
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--off-white) 0%, #E8ECEF 100%);
+            color: var(--soft-gray);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+        .header {
+            background: linear-gradient(135deg, var(--sage-green) 0%, var(--accent-green) 100%);
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header h1::before {
+            content: "🛡️";
+            font-size: 2.5rem;
+        }
+
+        .status-badge {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: var(--shadow-sm);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            background: #4ADE80;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #4ADE80;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* ============================================
+           MAIN CONTAINER
+           ============================================ */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* ============================================
+           VIDEO FEED SECTION
+           ============================================ */
+        .video-section {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+            transition: var(--transition);
+        }
+
+        .video-section:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .video-section h2 {
+            color: var(--sage-green);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--light-sage);
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 960px;
+            margin: 0 auto;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(122, 157, 126, 0.2);
+            background: #000;
+        }
+
+        .video-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ============================================
+           LIVE LOGS SECTION
+           ============================================ */
+        .logs-section {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+        }
+
+        .logs-section:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .logs-section h2 {
+            color: var(--slate-blue);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #E3EBF3;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logs-section h2::before {
+            content: "📋";
+            font-size: 1.75rem;
+        }
+
+        .logs-container {
+            background: var(--off-white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #E5E7EB;
+        }
+
+        .logs-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .logs-container::-webkit-scrollbar-track {
+            background: #F3F4F6;
+            border-radius: 4px;
+        }
+
+        .logs-container::-webkit-scrollbar-thumb {
+            background: var(--slate-blue);
+            border-radius: 4px;
+        }
+
+        .logs-container::-webkit-scrollbar-thumb:hover {
+            background: #5A7A9E;
+        }
+
+        .log-entry {
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-left: 4px solid var(--slate-blue);
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--soft-gray);
+            box-shadow: var(--shadow-sm);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .log-entry.threat {
+            border-left-color: #EF4444;
+            background: #FEF2F2;
+            color: #991B1B;
+        }
+
+        .log-empty {
+            text-align: center;
+            color: #9CA3AF;
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN
+           ============================================ */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+                justify-content: center;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .video-section,
+            .logs-section {
+                padding: 1.5rem;
+            }
+
+            .logs-container {
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ============================================
+         HEADER
+         ============================================ -->
+    <header class="header">
+        <h1>Security Sentinel AI</h1>
+        <div class="status-badge">
+            <div class="status-indicator"></div>
+            <span>System Active</span>
+        </div>
+    </header>
+
+    <!-- ============================================
+         MAIN CONTENT
+         ============================================ -->
+    <div class="container">
+        <!-- Video Feed Section -->
+        <section class="video-section">
+            <h2>Live Camera Feed</h2>
+            <div class="video-container">
+                <img src="{{ url_for('video_feed') }}" alt="Live Video Feed">
+            </div>
+        </section>
+
+        <!-- Live Logs Section -->
+        <section class="logs-section">
+            <h2>Live Detection Logs</h2>
+            <div class="logs-container" id="logs-container">
+                <div class="log-empty">Waiting for detections...</div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ============================================
+         JAVASCRIPT - LIVE LOG UPDATES
+         ============================================ -->
+    <script>
+        // Fetch logs from server every 500ms
+        let previousLogCount = 0;
+
+        function fetchLogs() {
+            fetch('/logs')
+                .then(response => response.json())
+                .then(data => {
+                    const logsContainer = document.getElementById('logs-container');
+                    const logs = data.logs;
+
+                    if (logs.length === 0) {
+                        logsContainer.innerHTML = '<div class="log-empty">Waiting for detections...</div>';
+                        return;
+                    }
+
+                    // Clear container and add logs
+                    logsContainer.innerHTML = '';
+                    logs.forEach(log => {
+                        const logEntry = document.createElement('div');
+                        logEntry.className = log.includes('🚨') ? 'log-entry threat' : 'log-entry';
+                        logEntry.textContent = log;
+                        logsContainer.appendChild(logEntry);
+                    });
+
+                    // Auto-scroll to bottom if new logs added
+                    if (logs.length > previousLogCount) {
+                        logsContainer.scrollTop = logsContainer.scrollHeight;
+                        previousLogCount = logs.length;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching logs:', error);
+                });
+        }
+
+        // Initial fetch
+        fetchLogs();
+
+        // Poll every 500ms
+        setInterval(fetchLogs, 500);
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+Flask
+opencv-python
+ultralytics
+requests
+numpy>=1.26.0
+Pillow
