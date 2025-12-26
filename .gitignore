@@ -17,10 +17,6 @@ __pycache__/
 *.pth
 *.weights
 
-# User Uploads & Processed Videos
-uploads/
-processed/
-alerts/
 
 # Environment Variables & Secrets
 .env
