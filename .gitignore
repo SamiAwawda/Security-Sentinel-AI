@@ -17,6 +17,12 @@ __pycache__/
 *.pth
 *.weights
 
+# Video Files (Generated/Uploaded)
+*.mp4
+*.avi
+*.mov
+*.mkv
+
 
 # Environment Variables & Secrets
 .env
