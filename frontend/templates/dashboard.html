@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Security Sentinel AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-shield-alt"></i>
+                Security Sentinel AI
+            </div>
+            <ul class="nav-links">
+                <li><a href="/" class="nav-link active">Dashboard</a></li>
+                <li><a href="/monitor" class="nav-link">Live Monitor</a></li>
+                <li><a href="/alerts" class="nav-link">Alerts</a></li>
+                <li><a href="/settings" class="nav-link">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="page-header fade-in">
+            <h1>Security Command Center</h1>
+            <p class="page-subtitle">AI-Powered Threat Detection & Real-Time Monitoring</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-4 mb-5 fade-in">
+            <div class="stat-card">
+                <div class="stat-icon">📹</div>
+                <div class="stat-value" id="camera-count">1</div>
+                <div class="stat-label">Active Cameras</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-value" id="total-alerts">0</div>
+                <div class="stat-label">Total Alerts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔍</div>
+                <div class="stat-value" id="today-detections">0</div>
+                <div class="stat-label">Detections Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💾</div>
+                <div class="stat-value" id="video-count">0</div>
+                <div class="stat-label">Saved Videos</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-2 mb-5">
+            <!-- Live Monitoring Card -->
+            <div class="glass-card scale-in">
+                <div class="card-header">
+                    <h3 class="card-title">🎥 Live Monitoring</h3>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom: var(--spacing-md);">
+                        Monitor security cameras in real-time with AI-powered threat detection.
+                        Automatic alerts and forensic video recording.
+                    </p>
+                    <div class="flex gap-2">
+                        <a href="/monitor" class="btn btn-primary">
+                            <span>Start Monitoring</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <a href="/alerts" class="btn btn-glass">
+                            <i class="fas fa-video"></i>
+                            View Alerts
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts Card -->
+            <div class="glass-card scale-in" style="animation-delay: 0.1s;">
+                <div class="card-header">
+                    <h3 class="card-title">🚨 Threat Alerts</h3>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom: var(--spacing-md);">
+                        Review detected threats, view forensic footage, and manage alert history.
+                        Integrated with Telegram for instant notifications.
+                    </p>
+                    <div class="flex gap-2">
+                        <a href="/alerts" class="btn btn-danger">
+                            <span>View Alerts</span>
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </a>
+                        <a href="/settings" class="btn btn-glass">
+                            <i class="fas fa-cog"></i>
+                            Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Alerts Section -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3 class="card-title">🔔 Recent Alerts</h3>
+                <a href="/alerts" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                <div id="recentAlerts">
+                    <!-- Alert items will be populated by JavaScript -->
+                    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                        <i class="fas fa-check-circle"
+                            style="font-size: 3rem; color: var(--threat-safe); margin-bottom: 1rem; display: block;"></i>
+                        <p>No alerts yet - System is secure</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detection Classes Info -->
+        <div class="grid grid-3 mt-5 mb-5">
+            <div class="card">
+                <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-sm);">
+                    <i class="fas fa-exclamation-triangle"></i> Critical Threats
+                </h4>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Weapons (Gun)</span>
+                        <span class="badge badge-critical">High Priority</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Knives</span>
+                        <span class="badge badge-critical">High Priority</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Balaclava</span>
+                        <span class="badge badge-high">Medium Priority</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-sm);">
+                    <i class="fas fa-user"></i> Monitored Objects
+                </h4>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Persons</span>
+                        <span class="badge badge-safe">Tracked</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Phones</span>
+                        <span class="badge badge-safe">Tracked</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Money</span>
+                        <span class="badge badge-medium">Monitored</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-sm);">
+                    <i class="fas fa-cogs"></i> System Info
+                </h4>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">AI Model</span>
+                        <span style="color: var(--accent-cyan);">YOLOv8</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Telegram</span>
+                        <span class="badge badge-online">Enabled</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Recording</span>
+                        <span class="badge badge-online">Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; padding: var(--spacing-xl) 0; color: var(--text-muted);">
+        <p>Security Sentinel AI - Powered by YOLOv8 Machine Learning</p>
+        <p style="font-size: 0.875rem; margin-top: 0.5rem;">Real-time threat detection & forensic recording</p>
+    </div>
+
+    <script>
+        // Load stats
+        async function loadStats() {
+            try {
+                const videosRes = await fetch('/api/videos');
+                const videosData = await videosRes.json();
+                document.getElementById('video-count').textContent = videosData.count || 0;
+
+                const alertsRes = await fetch('/api/alerts/count');
+                const alertsData = await alertsRes.json();
+                document.getElementById('total-alerts').textContent = alertsData.total || 0;
+
+                const recentRes = await fetch('/api/alerts/recent?limit=5');
+                const recentData = await recentRes.json();
+                renderRecentAlerts(recentData.alerts || []);
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function renderRecentAlerts(alerts) {
+            const container = document.getElementById('recentAlerts');
+            if (alerts.length === 0) return;
+
+            container.innerHTML = alerts.map(alert => `
+                <div class="alert-item" style="display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); margin-bottom: var(--spacing-sm); border-left: 4px solid var(--threat-critical);">
+                    <div style="flex-shrink: 0; width: 60px; height: 60px; background: var(--bg-tertiary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                        ${getThreatIcon(alert.threat_type)}
+                    </div>
+                    <div style="flex-grow: 1;">
+                        <div style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: 0.25rem;">
+                            <span class="badge badge-critical">${alert.threat_type}</span>
+                            <span style="color: var(--text-muted); font-size: 0.875rem;">Camera ${alert.camera_id || 1}</span>
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 0.875rem;">
+                            Detected at ${alert.time}
+                        </div>
+                    </div>
+                    <a href="/alerts" class="btn btn-glass" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        View Details
+                    </a>
+                </div>
+            `).join('');
+        }
+
+        function getThreatIcon(type) {
+            const icons = {
+                'Gun': '🔫',
+                'Knife': '🔪',
+                'Balaclava': '🎭',
+                'Phone': '📱',
+                'Money': '💵',
+                'Person': '👤'
+            };
+            for (let key in icons) {
+                if (type.includes(key)) return icons[key];
+            }
+            return '⚠️';
+        }
+
+        loadStats();
+        setInterval(loadStats, 10000);
+    </script>
+</body>
+
+</html>

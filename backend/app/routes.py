@@ -33,18 +33,39 @@ def register_routes(app):
     )
     
     # ============================================
-    # MAIN ROUTES
+    # PAGE ROUTES
     # ============================================
     
     @app.route('/')
     def index():
         """Serve main dashboard"""
-        return render_template('index.html')
+        return render_template('dashboard.html')
+    
+    @app.route('/monitor')
+    def monitor():
+        """Serve live monitoring page"""
+        return render_template('monitor.html')
+    
+    @app.route('/upload')
+    def upload_page():
+        """Serve video upload page"""
+        return render_template('upload.html')
+    
+    @app.route('/alerts')
+    def alerts_page():
+        """Serve alerts log page"""
+        return render_template('alerts.html')
     
     @app.route('/gallery')
     def gallery():
         """Serve video gallery page"""
         return render_template('gallery.html')
+    
+    @app.route('/settings')
+    def settings():
+        """Serve settings page"""
+        return render_template('settings.html')
+
     
     # ============================================
     # VIDEO STREAMING
@@ -77,6 +98,40 @@ def register_routes(app):
         """Check if there's an active threat (for audio alarm)"""
         with threat_lock:
             return jsonify({'active_threat': active_threat})
+    
+    @app.route('/api/alerts/count')
+    def alerts_count():
+        """Get total and unread alerts count"""
+        if hasattr(app, 'database_service'):
+            stats = app.database_service.get_alerts_count()
+            return jsonify(stats)
+        return jsonify({'total': 0, 'unread': 0})
+    
+    @app.route('/api/alerts/recent')
+    def recent_alerts():
+        """Get recent alerts"""
+        limit = request.args.get('limit', 5, type=int)
+        if hasattr(app, 'database_service'):
+            alerts = app.database_service.get_recent_alerts(limit=limit)
+            formatted = []
+            for alert in alerts:
+                formatted.append({
+                    'id': alert['id'],
+                    'time': alert['timestamp'],
+                    'threat_type': alert['threat_type'],
+                    'camera_id': alert['camera_id']
+                })
+            return jsonify({'alerts': formatted})
+        return jsonify({'alerts': []})
+    
+    @app.route('/api/alerts')
+    def all_alerts():
+        """Get all alerts with filtering"""
+        if hasattr(app, 'database_service'):
+            alerts = app.database_service.get_all_alerts()
+            return jsonify({'alerts': alerts, 'total': len(alerts)})
+        return jsonify({'alerts': [], 'total': 0})
+
     
     @app.route('/api/videos')
     def list_videos():
@@ -329,6 +384,20 @@ def handle_threat_detection(app, frame, threat_type, yolo_service, camera_servic
     def record_video():
         global active_threat
         video_path = recorder_service.record_alert_video(threat_type, camera_service, yolo_service)
+        
+        # Save alert to database
+        if video_path and hasattr(app, 'database_service'):
+            try:
+                app.database_service.add_alert(
+                    threat_type=threat_type,
+                    camera_id=0,
+                    video_path=video_path,
+                    telegram_sent=True
+                )
+                print(f"💾 Alert saved to database: {threat_type}")
+
+            except Exception as e:
+                print(f"❌ Error saving alert to database: {e}")
         
         with threat_lock:
             active_threat = False

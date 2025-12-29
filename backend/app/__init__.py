@@ -14,8 +14,8 @@ def create_app(config_name='default'):
     Creates and configures the Flask application
     """
     app = Flask(__name__,
-                template_folder='../templates',
-                static_folder='../static')
+                template_folder='../../frontend/templates',
+                static_folder='../../frontend/static')
     
     # Load configuration
     app.config.from_object(config[config_name])
@@ -53,6 +53,11 @@ def create_app(config_name='default'):
         estimated_fps=config[config_name].ESTIMATED_FPS
     )
     app.recorder_service = recorder_service
+    
+    # Initialize database service
+    from app.services.database_service import DatabaseService
+    database_service = DatabaseService('database/alerts.db')
+    app.database_service = database_service
     
     # Register routes
     from app import routes

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts - Security Sentinel AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--glass-border);
+        }
+
+        td {
+            padding: 0.875rem 1rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+        }
+
+        /* Side Panel */
+        .side-panel {
+            position: fixed;
+            top: 0;
+            right: -600px;
+            width: 600px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-left: 2px solid var(--glass-border);
+            box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 10000;
+            overflow-y: auto;
+        }
+
+        .side-panel.open {
+            right: 0;
+        }
+
+        .panel-header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .panel-content {
+            padding: var(--spacing-lg);
+        }
+
+        .panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 14, 39, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            display: none;
+        }
+
+        .panel-overlay.active {
+            display: block;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .detail-label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Overlay -->
+    <div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
+
+    <!-- Side Panel -->
+    <div class="side-panel" id="side-panel">
+        <div class="panel-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: var(--text-primary);">
+                    <i class="fas fa-exclamation-triangle"></i> Alert Details
+                </h3>
+                <button class="btn btn-glass" style="padding: 0.5rem 1rem;" onclick="closePanel()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="panel-content">
+            <!-- Video Player -->
+            <div class="video-container" style="margin-bottom: var(--spacing-lg);">
+                <video id="panel-video" controls
+                    style="width: 100%; border-radius: var(--radius-md); background: var(--bg-tertiary);">
+                    Your browser does not support video playback.
+                </video>
+            </div>
+
+            <!-- Alert Details -->
+            <div class="glass-card">
+                <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-md);">
+                    <i class="fas fa-info-circle"></i> Detection Information
+                </h4>
+                <div class="detail-row">
+                    <span class="detail-label">Alert ID</span>
+                    <span class="detail-value" id="detail-id">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Timestamp</span>
+                    <span class="detail-value" id="detail-timestamp">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Threat Type</span>
+                    <span class="detail-value" id="detail-threat">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Camera ID</span>
+                    <span class="detail-value" id="detail-camera">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Severity</span>
+                    <span class="detail-value" id="detail-severity">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Telegram Status</span>
+                    <span class="detail-value" id="detail-telegram">-</span>
+                </div>
+                <div class="detail-row" style="border: none;">
+                    <span class="detail-label">Video Path</span>
+                    <span class="detail-value" id="detail-path"
+                        style="font-size: 0.75rem; word-break: break-all;">-</span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div style="margin-top: var(--spacing-lg); display: flex; gap: var(--spacing-sm);">
+                <button class="btn btn-danger" style="flex: 1;" onclick="deleteCurrentAlert()">
+                    <i class="fas fa-trash"></i> Delete Alert
+                </button>
+                <button class="btn btn-primary" style="flex: 1;" onclick="downloadVideo()">
+                    <i class="fas fa-download"></i> Download Video
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-shield-alt"></i>
+                Security Sentinel AI
+            </div>
+            <ul class="nav-links">
+                <li><a href="/" class="nav-link">Dashboard</a></li>
+                <li><a href="/monitor" class="nav-link">Live Monitor</a></li>
+                <li><a href="/alerts" class="nav-link active">Alerts</a></li>
+                <li><a href="/settings" class="nav-link">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header fade-in">
+            <h1>Alert Archive</h1>
+            <p class="page-subtitle">Complete log of threat detections with forensic video evidence</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-4 fade-in">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-filter"></i> Filters</h3>
+            </div>
+            <div class="card-body">
+                <div class="flex gap-2" style="flex-wrap: wrap;">
+                    <select class="btn btn-glass" id="filter-type">
+                        <option value="all">All Types</option>
+                        <option value="Balaclava">Balaclava</option>
+                        <option value="Gun">Gun</option>
+                        <option value="Knife">Knife</option>
+                        <option value="Phone">Phone</option>
+                        <option value="Money">Money</option>
+                    </select>
+                    <select class="btn btn-glass" id="filter-date">
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="all">All Time</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="applyFilters()">
+                        <i class="fas fa-check"></i> Apply
+                    </button>
+                    <button class="btn btn-success" onclick="exportToCSV()">
+                        <i class="fas fa-download"></i> Export CSV
+                    </button>
+                    <button class="btn btn-danger" onclick="clearAllAlerts()" style="margin-left: auto;">
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Table -->
+        <div class="glass-card fade-in">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-video"></i> Alert Records with Forensic Videos (<span id="alert-total">0</span>)
+                </h3>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Timestamp</th>
+                            <th>Threat Type</th>
+                            <th>Camera</th>
+                            <th>Severity</th>
+                            <th>Video</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alerts-table">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                <i class="fas fa-list-ul"
+                                    style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
+                                Loading alerts...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allAlerts = [];
+        let currentAlert = null;
+
+        loadAlerts();
+
+        async function loadAlerts() {
+            try {
+                const response = await fetch('/api/alerts');
+                const data = await response.json();
+                allAlerts = data.alerts || [];
+                renderAlerts(allAlerts);
+                document.getElementById('alert-total').textContent = data.total || 0;
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+                document.getElementById('alerts-table').innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 3rem; color: var(--threat-critical);">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; display: block; margin-bottom: 1rem;"></i>
+                            Error loading alerts
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function renderAlerts(alerts) {
+            const tbody = document.getElementById('alerts-table');
+
+            if (alerts.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                            <i class="fas fa-check-circle" style="font-size: 3rem; display: block; margin-bottom: 1rem; color: var(--threat-safe);"></i>
+                            No alerts yet - System is secure
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = alerts.map((alert, index) => `
+                <tr onclick="viewAlert(${alert.id || index})" style="cursor: pointer;">
+                    <td>#${alert.id || index + 1}</td>
+                    <td>${alert.timestamp}</td>
+                    <td><span class="badge badge-critical">${alert.threat_type}</span></td>
+                    <td>Camera ${alert.camera_id || 1}</td>
+                    <td><span class="badge ${getSeverityClass(alert.severity)}">${alert.severity || 'High'}</span></td>
+                    <td>
+                        ${alert.video_path ?
+                    `<i class="fas fa-play-circle" style="color: var(--accent-cyan); font-size: 1.25rem;"></i>` :
+                    '<span style="color: var(--text-muted);">N/A</span>'
+                }
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;" onclick="event.stopPropagation(); viewAlert(${alert.id || index})">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function viewAlert(alertId) {
+            const alert = allAlerts.find(a => (a.id || allAlerts.indexOf(a)) === alertId) || allAlerts[alertId];
+            if (!alert) return;
+
+            currentAlert = alert;
+
+            // Populate panel
+            document.getElementById('detail-id').textContent = `#${alert.id || alertId}`;
+            document.getElementById('detail-timestamp').textContent = alert.timestamp;
+            document.getElementById('detail-threat').innerHTML = `<span class="badge badge-critical">${alert.threat_type}</span>`;
+            document.getElementById('detail-camera').textContent = `Camera ${alert.camera_id || 1}`;
+            document.getElementById('detail-severity').innerHTML = `<span class="badge ${getSeverityClass(alert.severity)}">${alert.severity || 'High'}</span>`;
+            document.getElementById('detail-telegram').innerHTML = alert.telegram_sent ? '<span class="badge badge-online">Sent</span>' : '<span class="badge badge-offline">Not Sent</span>';
+            document.getElementById('detail-path').textContent = alert.video_path || 'N/A';
+
+            // Load video
+            const video = document.getElementById('panel-video');
+            if (alert.video_path) {
+                const filename = alert.video_path.split('/').pop();
+                video.src = `/video/alerts/${filename}`;
+                video.load();
+            } else {
+                video.src = '';
+            }
+
+            // Show panel
+            document.getElementById('side-panel').classList.add('open');
+            document.getElementById('panel-overlay').classList.add('active');
+        }
+
+        function closePanel() {
+            document.getElementById('side-panel').classList.remove('open');
+            document.getElementById('panel-overlay').classList.remove('active');
+            const video = document.getElementById('panel-video');
+            video.pause();
+            video.src = '';
+        }
+
+        function getSeverityClass(severity) {
+            const map = {
+                'Critical': 'badge-critical',
+                'High': 'badge-high',
+                'Medium': 'badge-medium',
+                'Low': 'badge-safe'
+            };
+            return map[severity] || 'badge-high';
+        }
+
+        function applyFilters() {
+            loadAlerts();
+        }
+
+        function exportToCSV() {
+            alert('📥 CSV export feature - connect to backend!');
+        }
+
+        function clearAllAlerts() {
+            if (confirm('⚠️ Clear ALL alerts? This cannot be undone.')) {
+                alert('Feature available - connect to backend!');
+            }
+        }
+
+        function deleteCurrentAlert() {
+            if (currentAlert && confirm('Delete this alert and its video?')) {
+                alert(`Feature available - would delete alert #${currentAlert.id}`);
+                closePanel();
+            }
+        }
+
+        function downloadVideo() {
+            if (currentAlert && currentAlert.video_path) {
+                const filename = currentAlert.video_path.split('/').pop();
+                window.open(`/video/alerts/${filename}`, '_blank');
+            }
+        }
+
+        // Close panel on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closePanel();
+        });
+    </script>
+</body>
+
+</html>

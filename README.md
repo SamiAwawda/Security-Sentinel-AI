@@ -1,471 +1,220 @@
-# 🛡️ Security Sentinel AI - Forensic Edition
+# Security Sentinel AI 🛡️
 
-**Professional forensic surveillance system with YOLOv8 threat detection, pre-event video recording, instant Telegram photo alerts, and comprehensive video gallery.**
+Advanced AI-powered security monitoring system with real-time threat detection, forensic video recording, and multi-camera support.
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Flask](https://img.shields.io/badge/flask-3.0-green.svg)](https://flask.palletsprojects.com/)
-[![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-purple.svg)](https://github.com/ultralytics/ultralytics)
+![Version](https://img.shields.io/badge/version-2.0-blue)
+![Python](https://img.shields.io/badge/python-3.8+-green)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
----
+## ✨ Features
 
-## 🎯 Key Features
+### 🎯 Core Features
+- **Real-time YOLOv8 Detection** - AI-powered threat identification (Gun, Knife, Balaclava, Phone, Money)
+- **Forensic Video Recording** - Pre & post-event buffer capture with annotations
+- **Multi-Camera Grid View** - Monitor 1, 2, 4, or 8 cameras simultaneously
+- **Instant Telegram Alerts** - Real-time notifications with snapshots
+- **SQLite Database** - Persistent alert storage and analytics
+- **Glassmorphism UI** - Modern dark security operations center design
 
-### **🎥 Forensic Video Recording**
-- **5-Second Pre-Event Buffer** - Captures what happened BEFORE threat detection
-- **5-Second Post-Event Recording** - Documents response and outcome
-- **Ring Buffer Technology** - Continuous 100-frame memory loop
-- **YOLO Annotations Burned In** - All saved videos include detection overlays
-- **Local Storage** - Videos saved to `alerts/` folder for later review
+### 📹 Advanced Monitoring
+- **Smart Streaming** - Only one camera streams at a time (resource efficient)
+- **Named Cameras** - Custom locations (School Entrance, Parking Lot, etc.)
+- **Optimized Performance** - 640x480 @ 30 FPS, YOLO 320px inference
+- **Detection Log** - Real-time threat timeline with color coding
+- **Alert Archive** - Complete forensic video library with side-panel preview
 
-### **📸 Instant Telegram Photo Alerts**
-- **Photo-Based Alerts** - Fast, data-efficient (2-3 seconds delivery)
-- **Annotated Snapshots** - Bounding boxes included in alerts
-- **Smart Cooldown** - 5-second post-recording cooldown prevents spam
-- **Detailed Captions** - Threat type, timestamp, forensic video confirmation
-
-### **🎬 Video Gallery**
-- **Web-Based Review** - Browse all saved forensic videos
-- **Video Player Modal** - Play videos directly in browser
-- **Metadata Display** - Size, date, threat type for each video
-- **Delete Management** - Remove unwanted videos to free space
-- **Dual Folder Support** - View alerts + processed videos
-
-### **🎨 Modern Landing Page**
-- **3 Operating Modes:**
-  - 📹 **Live Webcam** - Real-time surveillance with lazy-loaded camera
-  - � **Upload Video** - Analyze pre-recorded footage
-  - 🎬 **Video Gallery** - Review saved forensic evidence
-- **Lazy Camera Loading** - Camera only activates when webcam mode selected
-- **Mode Switching** - Easy navigation with "Back to Home" button
-
-### **🔊 Audio Alarms**
-- **Frontend Beep** - Audible alert when threat detected
-- **Visual Indicators** - Flashing red "RECORDING ALERT" badge
-- **Non-intrusive** - Plays once per threat event
-
-### **🎯 Threat Detection**
-Alerts trigger for these specific conditions:
-- ✅ **Person + Knife** detected together
-- ✅ **Person + Weapon (Gun)** detected together
-- ✅ **Balaclava** detected (standalone)
-- ✅ **Phone** detected (standalone)
-
----
-
-## 📦 Installation
-
-### **Prerequisites**
-- Python 3.8 or higher
-- Webcam (for live mode)
-- Telegram Bot (for alerts)
-
-### **1. Clone the Repository**
-```bash
-git clone https://github.com/SamiAwawda/Security-Sentinel-AI.git
-cd Security-Sentinel-AI
-```
-
-### **2. Install Dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-**Packages installed:**
-- `Flask` - Web framework
-- `opencv-python` - Video processing
-- `ultralytics` - YOLOv8 engine
-- `requests` - Telegram API communication
-- `numpy` & `Pillow` - Image processing
-
-### **3. Download Your YOLOv8 Model**
-Place your trained `best.pt` model file in the project root directory.
-
----
-
-## ⚙️ Configuration
-
-### **Telegram Bot Setup**
-
-**1. Create a Telegram Bot:**
-- Open Telegram and search for `@BotFather`
-- Send `/newbot` and follow prompts
-- Copy your bot token (e.g., `123456789:ABCdef...`)
-
-**2. Get Your Chat ID:**
-- Search for `@userinfobot` on Telegram
-- Start a chat and copy your `Id` number
-
-**3. Update `app.py` (Lines 23-24):**
-```python
-TELEGRAM_BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
-CHAT_ID = "YOUR_CHAT_ID_HERE"
-```
-
----
-
-## 🚀 Usage
-
-### **Start the Server**
-```bash
-python app.py
-```
-
-Expected output:
-```
-==================================================
-🛡️  SECURITY SENTINEL AI - FORENSIC MODE
-==================================================
-✅ Model loaded successfully from best.pt
-📋 Detected classes: {0: 'Balaclava', 1: 'Gun', ...}
-✅ Camera initialized successfully (index: 0)
-� Resolution: 640x480
-
-🚀 Starting Forensic Alert System...
-�📡 Access dashboard at: http://localhost:5000
-⚡ Performance: Resolution=640x480, Inference=320px
-🎥 Forensic Recording: 5s before + 5s after detection
-📹 Ring Buffer Size: ~100 frames
-==================================================
-```
-
-### **Access the Dashboard**
-Open your browser and navigate to:
-```
-http://localhost:5000
-```
-
-### **Choose Your Mode**
-
-**📹 Live Webcam Mode:**
-1. Click "Live Webcam" on landing page
-2. Camera activates and feed starts
-3. Real-time detections appear
-4. Threats trigger:
-   - 🔊 Audio alarm (frontend)
-   - 📸 Telegram photo alert (instant)
-   - 🎥 Forensic video recording (10s total)
-
-**📤 Video Upload Mode:**
-1. Click "Upload Video"
-2. Select file (MP4, AVI, MOV, MKV)
-3. Click "Upload & Process Video"
-4. Watch real-time processing
-5. Download processed video with annotations
-
-**🎬 Video Gallery Mode:**
-1. Click "Video Gallery"
-2. Browse all saved forensic videos
-3. Click "▶ Play" to watch in modal
-4. Click "🗑️" to delete unwanted videos
-5. View metadata (date, size, threat type)
-
----
+### 🎨 Professional Interface
+- **Dashboard** - System stats, recent alerts, quick actions
+- **Live Monitor** - Multi-camera grid with AI detection overlay
+- **Alerts Page** - Integrated video preview with click-to-view panel
+- **Settings** - Configuration management and system info
 
 ## 📁 Project Structure
 
 ```
-Security-Sentinel-AI/
-├── app.py                      # Flask backend with forensic logic
-├── templates/
-│   ├── index.html             # Landing page & dashboard
-│   └── gallery.html           # Video gallery interface
-├── alerts/                    # Forensic alert videos (auto-created)
-│   ├── alert_Phone_Detected_20251226_183710.mp4
-│   └── alert_Person_Knife_20251226_192345.mp4
-├── uploads/                   # User uploaded videos (auto-created)
-├── processed/                 # Processed output videos (auto-created)
-├── best.pt                    # YOLOv8 model (you provide)
-├── requirements.txt           # Python dependencies
-├── README.md                  # This file
-└── .gitignore                # Git exclusions (alerts/ included)
+Project-V2/
+├── backend/                    # Backend Python application
+│   ├── app/
+│   │   ├── __init__.py        # Flask app factory
+│   │   ├── config.py          # Configuration (cameras, paths, alerts)
+│   │   ├── routes.py          # API endpoints
+│   │   └── services/          # Core services
+│   │       ├── yolo_service.py       # YOLO inference
+│   │       ├── camera_service.py     # Camera management
+│   │       ├── recorder_service.py   # Forensic recording
+│   │       ├── database_service.py   # SQLite operations
+│   │       ├── telegram_service.py   # Telegram alerts
+│   │       └── threat_logic.py       # Threat detection rules
+│   ├── models/                # YOLO model files
+│   ├── database/             # SQLite database
+│   ├── storage/              # Video storage
+│   │   ├── alerts/          # Forensic videos
+│   │   ├── uploads/         # User uploads
+│   │   └── processed/       # Processed videos
+│   └── run.py               # Application entry point
+│
+├── frontend/                  # Frontend web interface
+│   ├── static/
+│   │   ├── css/             # Glassmorphism styles
+│   │   └── js/              # Client-side logic
+│   └── templates/           # HTML pages
+│       ├── dashboard.html
+│       ├── monitor.html
+│       ├── alerts.html
+│       └── settings.html
+│
+├── README.md
+├── SETUP_GUIDE.md
+└── requirements.txt
 ```
 
----
+## 🚀 Quick Start
 
-## 🎨 Technical Details
+### Prerequisites
+- Python 3.8+
+- Webcam or IP camera
+- YOLO model (`best.pt`)
+- Telegram Bot (optional)
 
-### **Forensic Recording Architecture**
+### Installation
 
-**Ring Buffer Implementation:**
-```python
-from collections import deque
-
-# Initialize buffer
-frame_buffer = deque(maxlen=100)  # 5s at 20 FPS
-
-# Continuous filling
-while True:
-    annotated_frame = yolo_model.plot()
-    frame_buffer.append(annotated_frame.copy())  # Always has last 5s
-```
-
-**Alert Workflow:**
-```
-Threat Detected
-   ↓
-Instant Telegram Photo (2-3s) ←─────────────┐
-   ↓                                         │
-Dump Ring Buffer (5s pre-event)              │  Non-blocking
-   ↓                                         │  Threading
-Record Post-Event (5s)                       │
-   ↓                                         │
-Save MP4 (mp4v codec) ─────────────────────┘
-   ↓
-Cooldown (5s)
-   ↓
-Ready for Next Alert
-```
-
-### **Performance Optimization**
-- **Camera Resolution:** 640x480 (speed optimized)
-- **Inference Size:** 320px (real-time processing)
-- **FPS:** 15-25 (live), 10-20 (upload)
-- **Buffer Memory:** ~90MB RAM (100 frames × 900KB)
-- **Video Codec:** mp4v (Telegram compatible)
-
-### **Video Storage**
-- **Alert Videos:** `alerts/alert_[ThreatType]_[Timestamp].mp4`
-- **Processed Videos:** `processed/processed_[Filename]_[Timestamp].mp4`
-- **File Size:** ~500KB - 2MB per 10s clip
-- **Retention:** Manual deletion via gallery
-
-### **Threat Detection Logic**
-```python
-# Priority order (highest to lowest)
-1. Balaclava (immediate alert)
-2. Person + Knife (combination)
-3. Person + Weapon (combination)
-4. Phone (standalone)
-```
-
----
-
-## 🎯 API Endpoints
-
-### **Frontend Routes**
-- `GET /` - Landing page with mode selection
-- `GET /gallery` - Video gallery interface
-- `GET /video_feed/<mode>` - Live video stream (MJPEG)
-
-### **API Routes**
-- `GET /api/videos` - List all forensic videos (JSON)
-- `GET /video/<folder>/<filename>` - Serve video file for playback
-- `DELETE /delete_video/<folder>/<filename>` - Delete video
-- `GET /logs` - Detection logs (JSON)
-- `GET /threat_status` - Active threat status (for audio alarm)
-
-### **Upload Routes**
-- `POST /upload` - Upload video file
-- `GET /download_processed` - Download processed video
-
----
-
-## 🧪 Testing
-
-### **Test Forensic Recording**
 ```bash
-python app.py
-# 1. Open http://localhost:5000
-# 2. Click "Live Webcam"
-# 3. Show phone to camera
-# 4. Wait for "🎥 Starting forensic recording..."
-# 5. Check console for "✅ Forensic video saved"
-# 6. Click "Video Gallery" to verify
+# 1. Clone repository
+git clone https://github.com/YOUR_USERNAME/Security-Sentinel-AI.git
+cd Security-Sentinel-AI
+
+# 2. Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or
+venv\Scripts\activate  # Windows
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Place YOLO model
+# Copy your best.pt to backend/models/
+
+# 5. Run application
+cd backend
+python run.py
 ```
 
-**Expected Console Output:**
-```
-🎥 Starting forensic recording: alert_Phone_Detected_20251226_183758.mp4
-📹 Writing 100 pre-event frames WITH ANNOTATIONS...
-📹 Recording 5s post-event (100 frames)...
-✅ Telegram photo alert sent: Phone Detected
-✅ Forensic video saved: alerts/alert_Phone_Detected_20251226_183758.mp4
-```
+### Access
+- **Dashboard:** http://localhost:5000
+- **Live Monitor:** http://localhost:5000/monitor
+- **Alerts:** http://localhost:5000/alerts
+- **Settings:** http://localhost:5000/settings
 
-### **Test Video Gallery**
-```bash
-# 1. Navigate to http://localhost:5000/gallery
-# 2. Verify videos are listed
-# 3. Click "▶ Play" on any video
-# 4. Verify video plays in modal
-# 5. Close modal, click "🗑️" to test delete
-```
+## ⚙️ Configuration
 
----
+Edit `backend/app/config.py`:
 
-## 🔧 Troubleshooting
-
-### **Camera Not Working**
-```bash
-# Check camera access
-ls -l /dev/video0
-
-# Test with OpenCV
-python -c "import cv2; cap = cv2.VideoCapture(0); print('OK' if cap.isOpened() else 'FAIL')"
-
-# Fix permissions
-sudo usermod -a -G video $USER
-```
-
-### **Telegram Photo Not Sending**
-- Verify bot token and chat ID are correct
-- Message your bot first (start a conversation)
-- Check console for "✅ Telegram photo alert sent"
-- Look for API errors in console
-
-### **Video Gallery Empty**
-- Trigger at least one threat detection first
-- Check `alerts/` folder exists and contains .mp4 files
-- Verify browser console for API errors
-- Try refreshing the page
-
-### **Ring Buffer Issues**
 ```python
-# Check buffer is filling (add to app.py for debug)
-print(f"Buffer size: {len(frame_buffer)} frames")
-# Should show ~100 after 5 seconds
+# Camera Names
+CAMERAS = {
+    0: {'name': 'School Entrance', 'location': 'Front Gate'},
+    1: {'name': 'Back Hallway', 'location': 'Building A'},
+    # ... customize your cameras
+}
+
+# Forensic Recording
+PRE_EVENT_SECONDS = 5   # Buffer before detection
+POST_EVENT_SECONDS = 5  # Record after detection
+COOLDOWN_SECONDS = 5    # Alert cooldown
+
+# Telegram (optional)
+TELEGRAM_BOT_TOKEN = "your_bot_token"
+CHAT_ID = "your_chat_id"
 ```
 
-### **Video Playback Fails**
-- Ensure mp4v codec is supported by browser
-- Try different browser (Chrome recommended)
-- Check file permissions on alerts/ folder
-- Verify video file isn't corrupted
+## 📊 Camera Optimization
 
----
+**Settings Applied:**
+- Resolution: 640x480 (speed optimized)
+- Frame Rate: 30 FPS
+- Buffer Size: 1 (minimal latency)
+- Auto-exposure: Disabled (consistent FPS)
+- YOLO Inference: 320px (4x faster)
 
-## 🛡️ Security Notes
+**Display:**
+- Single view: 720px height (50% larger!)
+- Grid views: Responsive layouts
+- Resource efficient: Only 1 stream active
 
-- **Keep your bot token secret** - Never commit to Git
-- **Chat ID privacy** - Don't share publicly
-- **Local storage** - Videos stored locally (not cloud)
-- **Network access** - Runs on `0.0.0.0` for LAN accessibility
-- **Video retention** - Delete old videos via gallery to free space
+## 🎯 Detection Classes
 
----
+| Class | Threat Level | Alert |
+|-------|-------------|-------|
+| Gun | CRITICAL | ✅ |
+| Knife | CRITICAL | ✅ |
+| Balaclava | HIGH | ✅ |
+| Phone | MEDIUM | ✅ |
+| Money | MEDIUM | ✅ |
+| Person | INFO | ❌ |
 
-## 📊 System Requirements
+## 📸 Screenshots
 
-**Minimum:**
-- CPU: Dual-core 2.0 GHz
-- RAM: 4 GB
-- Disk: 5 GB free space (for video storage)
-- OS: Linux, macOS, Windows
+### Dashboard
+Modern glassmorphism design with real-time statistics
 
-**Recommended:**
-- CPU: Quad-core 3.0 GHz
-- RAM: 8 GB
-- GPU: NVIDIA (CUDA support for faster inference)
-- Disk: 20 GB free space
+### Live Monitor
+Multi-camera grid view with AI detection overlay
 
-**Network:**
-- Internet: Required for Telegram alerts
-- Bandwidth: Minimal (photos only, ~50KB per alert)
+### Alerts Archive
+Integrated video preview with forensic evidence
 
----
+## 🔧 Technology Stack
 
-## 🎬 Feature Comparison
+- **Backend:** Flask (Python)
+- **AI/ML:** YOLOv8 (Ultralytics)
+- **Computer Vision:** OpenCV
+- **Database:** SQLite3
+- **Frontend:** HTML5, CSS3 (Glassmorphism), Vanilla JS
+- **Notifications:** Telegram Bot API
+- **Icons:** Font Awesome
 
-| Feature | Basic Mode | Forensic Mode |
-|---------|-----------|---------------|
-| **Threat Detection** | ✅ Yes | ✅ Yes |
-| **Telegram Alerts** | Photo | Photo |
-| **Pre-Event Recording** | ❌ No | ✅ 5 seconds |
-| **Post-Event Recording** | ❌ No | ✅ 5 seconds |
-| **Video Gallery** | ❌ No | ✅ Yes |
-| **Audio Alarms** | ❌ No | ✅ Yes |
-| **Landing Page** | Simple | 3-Mode Selector |
-| **Video Storage** | Temp only | Permanent |
+## 📝 Version History
 
----
+### v2.0.0 (2025-12-29)
+- ✨ Multi-camera grid view (1, 2, 4, 8 cameras)
+- ✨ Glassmorphism UI redesign
+- ✨ Merged gallery into alerts with side panel
+- ✨ Camera naming system
+- ✨ Smart streaming (resource efficient)
+- 🚀 Performance optimization (640x480 @ 30FPS)
+- 🚀 Larger video display (720px single view)
+- 🐛 Fixed detection log JSON parsing
+- 🗑️ Cleaned up unused files
 
-## 📝 License
-
-This project is open source. Feel free to modify and distribute.
-
----
+### v1.0.0 (2025-12-28)
+- Initial release
+- YOLOv8 integration
+- Forensic recording
+- Telegram alerts
+- SQLite database
 
 ## 🤝 Contributing
 
-Contributions welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request
+Contributions welcome! Please feel free to submit pull requests.
 
-**Suggested Improvements:**
-- H.264 video encoding for smaller files
-- Person tracking with unique IDs (ByteTrack)
-- Multi-camera support
-- Cloud storage integration (S3, Drive)
-- Email alert notifications
-- User management system
+## 📄 License
 
----
+MIT License - See LICENSE file for details
 
-## 📧 Contact
+## 👤 Author
 
-**Developer:** Sami Awawda  
-**Email:** samitur02@gmail.com  
-**GitHub:** [@SamiAwawda](https://github.com/SamiAwawda)
-
----
+**Sami Awawda**
+- GitHub: [@SamiAwawda](https://github.com/SamiAwawda)
 
 ## 🙏 Acknowledgments
 
-- **Ultralytics YOLOv8** - State-of-the-art object detection
-- **Flask** - Lightweight web framework
-- **OpenCV** - Computer vision library
-- **Telegram Bot API** - Instant notification system
-- **Python Community** - Amazing ecosystem
+- YOLOv8 by Ultralytics
+- Flask framework
+- OpenCV community
 
 ---
 
-## � Roadmap
+**⭐ Star this repo if you find it useful!**
 
-**Completed:**
-- ✅ Forensic pre-event recording
-- ✅ Video gallery with playback
-- ✅ Telegram photo alerts
-- ✅ Audio alarms
-- ✅ Landing page mode selection
-
-**Upcoming:**
-- 🔄 Person tracking with Re-ID
-- 🔄 SQLite incident database
-- 🔄 Email alert notifications
-- 🔄 Advanced playback controls
-- 🔄 Multi-camera support
-- 🔄 H.264 encoding
-
----
-
-**Built with ❤️ for forensic security and surveillance applications**
-
-🛡️ **Stay Safe with Forensic Evidence!**
-
----
-
-## ⚡ Quick Start
-
-```bash
-# 1. Clone
-git clone https://github.com/SamiAwawda/Security-Sentinel-AI.git
-cd Security-Sentinel-AI
-
-# 2. Install
-pip install -r requirements.txt
-
-# 3. Configure Telegram (edit app.py)
-TELEGRAM_BOT_TOKEN = "YOUR_TOKEN"
-CHAT_ID = "YOUR_ID"
-
-# 4. Run
-python app.py
-
-# 5. Open browser
-http://localhost:5000
-
-# 6. Choose mode and start monitoring!
-```
-
-**Pro Tip:** Place your YOLOv8 `best.pt` model in the root directory before running!
+Last Updated: 2025-12-29

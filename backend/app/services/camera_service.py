@@ -35,9 +35,17 @@ class CameraService:
             if not self.camera.isOpened():
                 raise RuntimeError(f"Failed to open camera at index {self.camera_index}")
             
-            # Set resolution
-            self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
-            self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
+            # Set camera properties for optimal performance
+            # Use 640x480 for faster streaming (lower bandwidth)
+            self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            self.camera.set(cv2.CAP_PROP_FPS, 30)
+            
+            # Disable auto-exposure for consistent frame rate
+            self.camera.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)
+            
+            # Set buffer size to 1 to reduce latency
+            self.camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
             
             # Verify resolution
             actual_width = int(self.camera.get(cv2.CAP_PROP_FRAME_WIDTH))

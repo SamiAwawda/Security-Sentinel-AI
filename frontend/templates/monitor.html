@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Monitor - Security Sentinel AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .threat-banner {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gradient-danger);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            z-index: 1000;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translate(-50%, -100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        /* Dropdown Styling */
+        #view-mode {
+            background: var(--glass-bg) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--glass-border) !important;
+        }
+
+        #view-mode option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Camera Grid */
+        .camera-grid {
+            display: grid;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .camera-grid-1 {
+            grid-template-columns: 1fr;
+        }
+
+        .camera-grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .camera-grid-4 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .camera-grid-8 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .camera-tile {
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: var(--transition-base);
+            position: relative;
+        }
+
+        .camera-tile:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-2px);
+        }
+
+        .camera-tile.active {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .camera-tile.inactive {
+            opacity: 0.6;
+        }
+
+        .camera-header {
+            background: var(--bg-tertiary);
+            padding: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .camera-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .camera-status {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+
+        .camera-status.live {
+            background: rgba(0, 242, 160, 0.2);
+            color: var(--threat-safe);
+        }
+
+        .camera-status.inactive-status {
+            background: rgba(108, 114, 147, 0.2);
+            color: var(--text-muted);
+        }
+
+        .camera-feed-container {
+            position: relative;
+            background: var(--bg-secondary);
+            aspect-ratio: 4/3;
+        }
+
+        /* Larger video for single view */
+        .camera-grid-1 .camera-feed-container {
+            min-height: 720px;
+            aspect-ratio: 16/9;
+        }
+
+        .camera-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 14, 39, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: var(--transition-base);
+        }
+
+        .camera-tile:hover .camera-overlay {
+            background: rgba(10, 14, 39, 0.7);
+        }
+
+        .camera-overlay i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--accent-cyan);
+        }
+
+        .camera-location {
+            padding: 0.5rem 0.75rem;
+            background: var(--bg-tertiary);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .log-entry {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+            border-left: 3px solid var(--glass-border);
+            font-size: 0.875rem;
+        }
+
+        .log-entry.threat {
+            border-left-color: var(--threat-critical);
+            background: rgba(255, 59, 92, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Threat Banner -->
+    <div id="threat-banner" class="threat-banner">
+        <strong><i class="fas fa-exclamation-triangle"></i> THREAT DETECTED!</strong>
+        <span id="threat-message">Recording forensic video...</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-shield-alt"></i>
+                Security Sentinel AI
+            </div>
+            <ul class="nav-links">
+                <li><a href="/" class="nav-link">Dashboard</a></li>
+                <li><a href="/monitor" class="nav-link active">Live Monitor</a></li>
+                <li><a href="/alerts" class="nav-link">Alerts</a></li>
+                <li><a href="/settings" class="nav-link">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header fade-in">
+            <h1>Live Security Monitor</h1>
+            <p class="page-subtitle">Multi-camera grid view with AI-powered threat detection</p>
+        </div>
+
+        <!-- Camera Controls -->
+        <div class="card mb-4 fade-in">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-sliders-h"></i> View Controls</h3>
+            </div>
+            <div class="card-body">
+                <div class="flex gap-3" style="align-items: center; flex-wrap: wrap;">
+                    <div>
+                        <label
+                            style="color: var(--text-secondary); font-weight: 500; display: block; margin-bottom: 0.5rem;">Grid
+                            Layout:</label>
+                        <select id="view-mode" class="btn btn-glass" style="padding: 0.75rem 1.5rem;"
+                            onchange="changeViewMode()">
+                            <option value="1" selected>Single Camera</option>
+                            <option value="2">2 Cameras (Dual)</option>
+                            <option value="4">4 Cameras (Quad)</option>
+                            <option value="8">8 Cameras (Octo)</option>
+                        </select>
+                    </div>
+                    <div style="margin-left: auto; display: flex; gap: 1rem; align-items: center;">
+                        <span class="badge badge-online"><i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                            MONITORING</span>
+                        <span style="color: var(--text-secondary); font-size: 0.875rem;">Active: <strong
+                                style="color: var(--accent-cyan);" id="active-camera-name">School
+                                Entrance</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camera Grid -->
+        <div class="camera-grid camera-grid-1" id="camera-grid">
+            <!-- Cameras will be dynamically generated -->
+        </div>
+
+        <!-- Detection Log (below cameras) -->
+        <div class="glass-card fade-in">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-list"></i> Detection Log</h3>
+                <button class="btn btn-glass" style="padding: 0.5rem 1rem; font-size: 0.875rem;" onclick="clearLog()">
+                    <i class="fas fa-eraser"></i> Clear
+                </button>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                <div id="detection-log">
+                    <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                        <i class="fas fa-search" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                        <p>Monitoring for threats...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CAMERAS = {
+            0: { name: 'School Entrance', location: 'Front Gate' },
+            1: { name: 'Back Hallway', location: 'Building A' },
+            2: { name: 'Parking Lot', location: 'West Side' },
+            3: { name: 'Cafeteria', location: 'Main Building' },
+            4: { name: 'Library', location: 'Second Floor' },
+            5: { name: 'Gymnasium', location: 'Sports Complex' },
+            6: { name: 'Main Office', location: 'Admin Building' },
+            7: { name: 'Playground', location: 'East Side' }
+        };
+
+        let activeCamera = 0;
+        let currentViewMode = 1;
+
+        // Initialize camera grid
+        function initCameraGrid() {
+            const mode = parseInt(document.getElementById('view-mode').value);
+            currentViewMode = mode;
+            const grid = document.getElementById('camera-grid');
+
+            // Update grid class
+            grid.className = `camera-grid camera-grid-${mode}`;
+
+            // Generate camera tiles
+            grid.innerHTML = '';
+            for (let i = 0; i < mode; i++) {
+                const cam = CAMERAS[i];
+                const isActive = (i === activeCamera);
+
+                const tile = document.createElement('div');
+                tile.className = `camera-tile ${isActive ? 'active' : 'inactive'}`;
+                // Click disabled - cameras don't switch on click
+
+                tile.innerHTML = `
+                    <div class="camera-header">
+                        <span class="camera-name">
+                            <i class="fas fa-video"></i> ${cam.name}
+                        </span>
+                        <span class="camera-status ${isActive ? 'live' : 'inactive-status'}">
+                            ${isActive ? 'LIVE' : 'INACTIVE'}
+                        </span>
+                    </div>
+                    <div class="camera-feed-container">
+                        ${isActive ?
+                        `<img class="camera-feed" id="video-feed-${i}" src="/video_feed/camera?camera=${i}&t=${Date.now()}" alt="${cam.name}">` :
+                        `<div class="camera-overlay">
+                                <i class="fas fa-video-slash"></i>
+                                <p>Camera Inactive</p>
+                            </div>`
+                    }
+                    </div>
+                    <div class="camera-location">
+                        <i class="fas fa-map-marker-alt"></i> ${cam.location}
+                    </div>
+                `;
+
+                grid.appendChild(tile);
+            }
+        }
+
+        function changeViewMode() {
+            initCameraGrid();
+        }
+
+        function activateCamera(cameraId) {
+            if (cameraId === activeCamera) return; // Already active
+
+            activeCamera = cameraId;
+            document.getElementById('active-camera-name').textContent = CAMERAS[cameraId].name;
+
+            // Rebuild grid to update active camera
+            initCameraGrid();
+        }
+
+        function clearLog() {
+            document.getElementById('detection-log').innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                    <i class="fas fa-check-circle" style="font-size: 2rem; color: var(--threat-safe); display: block; margin-bottom: 0.5rem;"></i>
+                    <p>Log cleared</p>
+                </div>
+            `;
+            setTimeout(() => {
+                loadLogs();
+            }, 2000);
+        }
+
+        // Auto-refresh detection logs
+        async function loadLogs() {
+            try {
+                const response = await fetch('/logs');
+                const data = await response.json();  // Parse JSON response
+                const logs = data.logs || [];  // Extract logs array
+                const logContainer = document.getElementById('detection-log');
+
+                if (logs.length === 0) {
+                    logContainer.innerHTML = `
+                        <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                            <i class="fas fa-search" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                            <p>Monitoring for threats...</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                logContainer.innerHTML = logs.slice(-10).reverse().map(log => {
+                    const isThreat = log.includes('Threat') || log.includes('Gun') || log.includes('Knife') || log.includes('Balaclava');
+                    return `<div class="log-entry ${isThreat ? 'threat' : ''}">${log}</div>`;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading logs:', error);
+                const logContainer = document.getElementById('detection-log');
+                logContainer.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: var(--threat-critical); display: block; margin-bottom: 0.5rem;"></i>
+                        <p>Error loading logs</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Check for active threats
+        async function checkThreatStatus() {
+            try {
+                const response = await fetch('/threat_status');
+                const data = await response.json();
+                const banner = document.getElementById('threat-banner');
+
+                if (data.active_threat) {
+                    document.getElementById('threat-message').textContent = 'Recording forensic video...';
+                    banner.style.display = 'block';
+                } else {
+                    banner.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error checking threat status:', error);
+            }
+        }
+
+        // Initialize
+        initCameraGrid();
+        loadLogs();
+        checkThreatStatus();
+
+        // Auto-refresh
+        setInterval(loadLogs, 1000);
+        setInterval(checkThreatStatus, 500);
+    </script>
+</body>
+
+</html>

@@ -17,7 +17,7 @@ class Config:
     # ============================================
     # MODEL CONFIGURATION
     # ============================================
-    MODEL_PATH = "best.pt"
+    MODEL_PATH = "models/best.pt"
     INFERENCE_SIZE = 320  # Optimized for real-time performance
     
     # ============================================
@@ -27,6 +27,18 @@ class Config:
     CAMERA_WIDTH = 640
     CAMERA_HEIGHT = 480
     ESTIMATED_FPS = 20
+    
+    # Camera Names and Locations
+    CAMERAS = {
+        0: {'name': 'School Entrance', 'location': 'Front Gate'},
+        1: {'name': 'Back Hallway', 'location': 'Building A'},
+        2: {'name': 'Parking Lot', 'location': 'West Side'},
+        3: {'name': 'Cafeteria', 'location': 'Main Building'},
+        4: {'name': 'Library', 'location': 'Second Floor'},
+        5: {'name': 'Gymnasium', 'location': 'Sports Complex'},
+        6: {'name': 'Main Office', 'location': 'Admin Building'},
+        7: {'name': 'Playground', 'location': 'East Side'}
+    }
     
     # ============================================
     # FORENSIC RECORDING CONFIGURATION
@@ -39,10 +51,10 @@ class Config:
     # FOLDER CONFIGURATION
     # ============================================
     BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
-    PROCESSED_FOLDER = os.path.join(BASE_DIR, 'processed')
-    ALERT_VIDEO_FOLDER = os.path.join(BASE_DIR, 'alerts')
-    STATIC_FOLDER = os.path.join(BASE_DIR, 'static')
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'storage', 'uploads')
+    PROCESSED_FOLDER = os.path.join(BASE_DIR, 'storage', 'processed')
+    ALERT_VIDEO_FOLDER = os.path.join(BASE_DIR, 'storage', 'alerts')
+    STATIC_FOLDER = os.path.join(BASE_DIR, '..', 'frontend', 'static')
     
     # ============================================
     # FILE UPLOAD CONFIGURATION
