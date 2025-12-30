@@ -30,7 +30,7 @@ class CameraService:
     def initialize_camera(self):
         """Initialize and configure camera"""
         try:
-            self.camera = cv2.VideoCapture(self.camera_index, cv2.CAP_V4L2)
+            self.camera = cv2.VideoCapture(self.camera_index, cv2.CAP_DSHOW)
             
             if not self.camera.isOpened():
                 raise RuntimeError(f"Failed to open camera at index {self.camera_index}")
@@ -96,6 +96,37 @@ class CameraService:
                 'height': int(self.camera.get(cv2.CAP_PROP_FRAME_HEIGHT)),
                 'fps': int(self.camera.get(cv2.CAP_PROP_FPS))
             }
+    
+    def switch_camera(self, new_index):
+        """
+        Switch to a different camera index
+        
+        Args:
+            new_index (int): New camera index to switch to
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            print(f"🔄 Switching from camera {self.camera_index} to camera {new_index}...")
+            
+            # Release current camera
+            if self.camera is not None:
+                with self.camera_lock:
+                    self.camera.release()
+                print(f"✅ Released camera {self.camera_index}")
+            
+            # Update index
+            self.camera_index = new_index
+            
+            # Initialize new camera
+            self.initialize_camera()
+            
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error switching camera: {e}")
+            return False
     
     def cleanup(self):
         """Release camera resources"""

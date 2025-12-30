@@ -1,5 +1,5 @@
 """
-Security Sentinel AI - Production Entry Point
+AGKS - Akıllı Gözetim Koruma Sistemi
 Main application runner
 """
 
@@ -14,7 +14,7 @@ def main():
         
         # Run the application
         print("\n" + "=" * 50)
-        print("🛡️  SECURITY SENTINEL AI - FORENSIC MODE")
+        print("🛡️  AGKS - Akıllı Gözetim Koruma Sistemi")
         print("=" * 50)
         print("📡 Server starting...")
         print("📡 Access dashboard at: http://localhost:5000")

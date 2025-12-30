@@ -101,7 +101,7 @@ class RecorderService:
             
             # Initialize video writer
             height, width = pre_frames[0].shape[:2]
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            fourcc = cv2.VideoWriter_fourcc(*'x264')  # H.264 codec - plays in all browsers!
             fps = max(self.estimated_fps, 15)
             video_writer = cv2.VideoWriter(video_path, fourcc, fps, (width, height))
             

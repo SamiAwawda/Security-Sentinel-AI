@@ -1,5 +1,5 @@
 """
-Security Sentinel AI - Configuration Module
+AGKS - Configuration Module
 Centralized configuration management
 """
 
@@ -26,7 +26,7 @@ class Config:
     CAMERA_INDEX = 0
     CAMERA_WIDTH = 640
     CAMERA_HEIGHT = 480
-    ESTIMATED_FPS = 20
+    ESTIMATED_FPS = 8 # Reduced to match actual YOLO processing speed
     
     # Camera Names and Locations
     CAMERAS = {
@@ -51,16 +51,8 @@ class Config:
     # FOLDER CONFIGURATION
     # ============================================
     BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'storage', 'uploads')
-    PROCESSED_FOLDER = os.path.join(BASE_DIR, 'storage', 'processed')
     ALERT_VIDEO_FOLDER = os.path.join(BASE_DIR, 'storage', 'alerts')
     STATIC_FOLDER = os.path.join(BASE_DIR, '..', 'frontend', 'static')
-    
-    # ============================================
-    # FILE UPLOAD CONFIGURATION
-    # ============================================
-    ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
-    MAX_CONTENT_LENGTH = 500 * 1024 * 1024  # 500MB max upload
     
     # ============================================
     # FLASK CONFIGURATION
@@ -71,13 +63,10 @@ class Config:
     def init_app(app):
         """Initialize application with configuration"""
         # Create required directories
-        os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
-        os.makedirs(Config.PROCESSED_FOLDER, exist_ok=True)
         os.makedirs(Config.ALERT_VIDEO_FOLDER, exist_ok=True)
         os.makedirs(Config.STATIC_FOLDER, exist_ok=True)
         
         print("✅ Configuration loaded successfully")
-        print(f"📁 Upload folder: {Config.UPLOAD_FOLDER}")
         print(f"📁 Alert folder: {Config.ALERT_VIDEO_FOLDER}")
 
 

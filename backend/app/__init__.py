@@ -1,5 +1,5 @@
 """
-Security Sentinel AI - Flask Application Factory
+AGKS - Flask Application Factory
 """
 
 from flask import Flask
@@ -22,8 +22,6 @@ def create_app(config_name='default'):
     config[config_name].init_app(app)
     
     # Configure Flask settings
-    app.config['UPLOAD_FOLDER'] = config[config_name].UPLOAD_FOLDER
-    app.config['PROCESSED_FOLDER'] = config[config_name].PROCESSED_FOLDER
     app.config['ALERT_VIDEO_FOLDER'] = config[config_name].ALERT_VIDEO_FOLDER
     
     # Initialize services
@@ -31,7 +29,7 @@ def create_app(config_name='default'):
     from app.services.camera_service import CameraService
     from app.services.recorder_service import RecorderService
     
-    print("\n🚀 Initializing Security Sentinel AI...")
+    print("\n🚀 Initializing AGKS...")
     
     # Initialize YOLO model
     yolo_service = YOLOService(config[config_name].MODEL_PATH)

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alerts - Security Sentinel AI</title>
+    <title>Alerts - AGKS</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -185,8 +185,9 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <i class="fas fa-shield-alt"></i>
-                Security Sentinel AI
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AGKS Logo"
+                    style="height: 55px; margin-right: 12px;">
+                Akıllı Gözetim Koruma Sistemi
             </div>
             <ul class="nav-links">
                 <li><a href="/" class="nav-link">Dashboard</a></li>
@@ -354,7 +355,8 @@
             // Load video
             const video = document.getElementById('panel-video');
             if (alert.video_path) {
-                const filename = alert.video_path.split('/').pop();
+                // Extract filename - support both Windows (\) and Unix (/) paths
+                const filename = alert.video_path.split(/[/\\]/).pop();
                 video.src = `/video/alerts/${filename}`;
                 video.load();
             } else {
@@ -394,20 +396,53 @@
 
         function clearAllAlerts() {
             if (confirm('⚠️ Clear ALL alerts? This cannot be undone.')) {
-                alert('Feature available - connect to backend!');
+                fetch('/api/alerts/clear', {
+                    method: 'DELETE'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(`✅ ${data.message}`);
+                            loadAlerts(); // Reload alerts table
+                        } else {
+                            alert(`❌ Error: ${data.error || 'Failed to clear alerts'}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('❌ Failed to clear alerts. Check console for details.');
+                    });
             }
         }
 
         function deleteCurrentAlert() {
             if (currentAlert && confirm('Delete this alert and its video?')) {
-                alert(`Feature available - would delete alert #${currentAlert.id}`);
-                closePanel();
+                const alertId = currentAlert.id;
+                fetch(`/api/alerts/${alertId}`, {
+                    method: 'DELETE'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(`✅ ${data.message}`);
+                            closePanel();
+                            loadAlerts(); // Reload alerts table
+                        } else {
+                            alert(`❌ Error: ${data.error || 'Failed to delete alert'}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('❌ Failed to delete alert. Check console for details.');
+                    });
             }
         }
 
+
         function downloadVideo() {
             if (currentAlert && currentAlert.video_path) {
-                const filename = currentAlert.video_path.split('/').pop();
+                // Extract filename - support both Windows (\) and Unix (/) paths
+                const filename = currentAlert.video_path.split(/[/\\]/).pop();
                 window.open(`/video/alerts/${filename}`, '_blank');
             }
         }

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Monitor - Security Sentinel AI</title>
+    <title>Live Monitor - AGKS</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -139,7 +139,9 @@
         .camera-feed {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            /* Show full video without cropping */
+            background: var(--bg-secondary);
         }
 
         .camera-overlay {
@@ -201,8 +203,9 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <i class="fas fa-shield-alt"></i>
-                Security Sentinel AI
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AGKS Logo"
+                    style="height: 55px; margin-right: 12px;">
+                Akıllı Gözetim Koruma Sistemi
             </div>
             <ul class="nav-links">
                 <li><a href="/" class="nav-link">Dashboard</a></li>
@@ -240,6 +243,27 @@
                             <option value="8">8 Cameras (Octo)</option>
                         </select>
                     </div>
+
+                    <!-- Camera Source Selector -->
+                    <div>
+                        <label
+                            style="color: var(--text-secondary); font-weight: 500; display: block; margin-bottom: 0.5rem;">
+                            📹 Camera Source:</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <select id="camera-select" class="btn btn-glass" style="padding: 0.75rem 1.5rem;">
+                                <option value="0">Camera 0 (Default)</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="switchCamera()"
+                                style="padding: 0.75rem 1.5rem; white-space: nowrap;">
+                                <i class="fas fa-sync-alt"></i> Switch
+                            </button>
+                            <button class="btn btn-glass" onclick="detectCameras()"
+                                style="padding: 0.75rem 1.5rem; white-space: nowrap;" title="Detect available cameras">
+                                <i class="fas fa-search"></i> Detect
+                            </button>
+                        </div>
+                    </div>
+
                     <div style="margin-left: auto; display: flex; gap: 1rem; align-items: center;">
                         <span class="badge badge-online"><i class="fas fa-circle" style="font-size: 0.5rem;"></i>
                             MONITORING</span>
@@ -411,6 +435,58 @@
                 }
             } catch (error) {
                 console.error('Error checking threat status:', error);
+            }
+        }
+
+        // Camera source management
+        async function detectCameras() {
+            try {
+                const response = await fetch('/api/cameras/detect');
+                const data = await response.json();
+
+                if (data.success && data.cameras.length > 0) {
+                    const select = document.getElementById('camera-select');
+                    select.innerHTML = data.cameras.map(cam =>
+                        `<option value="${cam.index}" ${cam.index === data.current_index ? 'selected' : ''}>
+                            ${cam.name}
+                        </option>`
+                    ).join('');
+
+                    alert(`✅ Found ${data.count} camera(s):\n${data.cameras.map(c => `Camera ${c.index}: ${c.name}`).join('\n')}`);
+                } else {
+                    alert('❌ No cameras detected. Make sure cameras are connected and not in use by other applications.');
+                }
+            } catch (error) {
+                console.error('Error detecting cameras:', error);
+                alert('❌ Failed to detect cameras. Check console for details.');
+            }
+        }
+
+        async function switchCamera() {
+            const select = document.getElementById('camera-select');
+            const newIndex = parseInt(select.value);
+
+            if (confirm(`Switch to ${select.options[select.selectedIndex].text}?`)) {
+                try {
+                    const response = await fetch('/api/camera/switch', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ index: newIndex })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        alert(`✅ ${data.message}\n\nRefreshing video feed...`);
+                        // Refresh the video feed
+                        location.reload();
+                    } else {
+                        alert(`❌ ${data.error || 'Failed to switch camera'}`);
+                    }
+                } catch (error) {
+                    console.error('Error switching camera:', error);
+                    alert('❌ Failed to switch camera. Check console for details.');
+                }
             }
         }
 

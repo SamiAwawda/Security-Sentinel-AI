@@ -19,8 +19,6 @@ from app.services.telegram_service import TelegramService
 detection_logs = []
 active_threat = False
 threat_lock = threading.Lock()
-current_processed_path = None
-video_processing_complete = False
 
 
 def register_routes(app):
@@ -45,11 +43,6 @@ def register_routes(app):
     def monitor():
         """Serve live monitoring page"""
         return render_template('monitor.html')
-    
-    @app.route('/upload')
-    def upload_page():
-        """Serve video upload page"""
-        return render_template('upload.html')
     
     @app.route('/alerts')
     def alerts_page():
@@ -77,7 +70,7 @@ def register_routes(app):
         MJPEG video stream endpoint
         
         Args:
-            mode (str): 'camera' for live feed, 'upload' for uploaded video
+            mode (str): 'camera' for live feed
         """
         return Response(
             generate_frames(app, mode),
@@ -131,6 +124,158 @@ def register_routes(app):
             alerts = app.database_service.get_all_alerts()
             return jsonify({'alerts': alerts, 'total': len(alerts)})
         return jsonify({'alerts': [], 'total': 0})
+    
+    @app.route('/api/alerts/<int:alert_id>', methods=['DELETE'])
+    def delete_alert(alert_id):
+        """Delete a specific alert and its associated video"""
+        try:
+            if not hasattr(app, 'database_service'):
+                return jsonify({'error': 'Database service not available'}), 500
+            
+            # Get alert info first to find video path
+            alerts = app.database_service.get_all_alerts()
+            alert = next((a for a in alerts if a['id'] == alert_id), None)
+            
+            if not alert:
+                return jsonify({'error': 'Alert not found'}), 404
+            
+            # Delete video file if exists
+            if alert.get('video_path'):
+                try:
+                    video_filename = alert['video_path'].split('/')[-1]
+                    video_path = os.path.join(app.config['ALERT_VIDEO_FOLDER'], video_filename)
+                    if os.path.exists(video_path):
+                        os.remove(video_path)
+                        print(f"🗑️ Deleted video: {video_filename}")
+                except Exception as e:
+                    print(f"⚠️ Error deleting video file: {e}")
+            
+            # Delete alert from database
+            app.database_service.delete_alert(alert_id)
+            
+            return jsonify({
+                'success': True,
+                'message': f'Alert #{alert_id} deleted successfully'
+            })
+        except Exception as e:
+            print(f"❌ Error deleting alert: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/api/alerts/clear', methods=['DELETE'])
+    def clear_all_alerts():
+        """Delete all alerts and their associated videos"""
+        try:
+            if not hasattr(app, 'database_service'):
+                return jsonify({'error': 'Database service not available'}), 500
+            
+            # Get all alerts first
+            alerts = app.database_service.get_all_alerts()
+            deleted_videos = 0
+            
+            # Delete all video files
+            for alert in alerts:
+                if alert.get('video_path'):
+                    try:
+                        video_filename = alert['video_path'].split('/')[-1]
+                        video_path = os.path.join(app.config['ALERT_VIDEO_FOLDER'], video_filename)
+                        if os.path.exists(video_path):
+                            os.remove(video_path)
+                            deleted_videos += 1
+                    except Exception as e:
+                        print(f"⚠️ Error deleting video file: {e}")
+            
+            # Clear all alerts from database
+            app.database_service.clear_all_alerts()
+            
+            print(f"🗑️ Cleared {len(alerts)} alerts and {deleted_videos} videos")
+            
+            return jsonify({
+                'success': True,
+                'message': f'Deleted {len(alerts)} alerts and {deleted_videos} videos',
+                'deleted_alerts': len(alerts),
+                'deleted_videos': deleted_videos
+            })
+        except Exception as e:
+            print(f"❌ Error clearing alerts: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/api/cameras/detect')
+    def detect_cameras():
+        """Detect available cameras by testing indices 0-5"""
+        try:
+            available_cameras = []
+            
+            # Test camera indices 0-5
+            for index in range(6):
+                try:
+                    cap = cv2.VideoCapture(index, cv2.CAP_DSHOW)
+                    if cap.isOpened():
+                        # Get camera name/description if possible
+                        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                        
+                        # Determine camera name
+                        if index == 0:
+                            name = f"Camera {index} (Default - {width}x{height})"
+                        elif index == 1:
+                            name = f"Camera {index} (Secondary/OBS - {width}x{height})"
+                        else:
+                            name = f"Camera {index} ({width}x{height})"
+                        
+                        available_cameras.append({
+                            'index': index,
+                            'name': name,
+                            'resolution': f"{width}x{height}"
+                        })
+                        cap.release()
+                        print(f"✅ Detected camera at index {index}: {name}")
+                except:
+                    pass
+            
+            print(f"📹 Found {len(available_cameras)} camera(s)")
+            
+            return jsonify({
+                'success': True,
+                'cameras': available_cameras,
+                'count': len(available_cameras),
+                'current_index': app.camera_service.camera_index if hasattr(app, 'camera_service') else 0
+            })
+            
+        except Exception as e:
+            print(f"❌ Error detecting cameras: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/api/camera/switch', methods=['POST'])
+    def switch_camera():
+        """Switch to a different camera index"""
+        try:
+            data = request.get_json()
+            new_index = data.get('index')
+            
+            if new_index is None:
+                return jsonify({'error': 'Camera index not provided'}), 400
+            
+            if not hasattr(app, 'camera_service'):
+                return jsonify({'error': 'Camera service not available'}), 500
+            
+            # Attempt to switch camera
+            success = app.camera_service.switch_camera(new_index)
+            
+            if success:
+                return jsonify({
+                    'success': True,
+                    'message': f'Switched to camera {new_index}',
+                    'index': new_index
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': f'Failed to switch to camera {new_index}'
+                }), 500
+                
+        except Exception as e:
+            print(f"❌ Error switching camera: {e}")
+            return jsonify({'error': str(e)}), 500
 
     
     @app.route('/api/videos')
@@ -221,71 +366,7 @@ def register_routes(app):
             return jsonify({'success': True, 'message': f'Video {filename} deleted'})
         except Exception as e:
             return jsonify({'error': str(e)}), 500
-    
-    # ============================================
-    # VIDEO UPLOAD
-    # ============================================
-    
-    @app.route('/upload', methods=['POST'])
-    def upload_video():
-        """Handle video file upload"""
-        global current_processed_path, video_processing_complete
-        
-        if 'video' not in request.files:
-            return jsonify({'error': 'No video file provided'}), 400
-        
-        file = request.files['video']
-        
-        if file.filename == '':
-            return jsonify({'error': 'No file selected'}), 400
-        
-        if not allowed_file(file.filename, app.config['ALLOWED_EXTENSIONS']):
-            return jsonify({'error': 'Invalid file type'}), 400
-        
-        try:
-            # Save uploaded file
-            filename = secure_filename(file.filename)
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            unique_filename = f"{timestamp}_{filename}"
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-            file.save(filepath)
-            
-            # Process video in background
-            video_processing_complete = False
-            threading.Thread(
-                target=process_uploaded_video,
-                args=(app, filepath, unique_filename),
-                daemon=True
-            ).start()
-            
-            print(f"✅ Video uploaded: {filepath}")
-            
-            return jsonify({
-                'success': True,
-                'message': 'Video uploaded successfully',
-                'filename': unique_filename
-            })
-        
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-    
-    @app.route('/download_processed')
-    def download_processed():
-        """Download the processed video file"""
-        global current_processed_path
-        
-        if current_processed_path and os.path.exists(current_processed_path):
-            return send_file(
-                current_processed_path,
-                as_attachment=True,
-                download_name=os.path.basename(current_processed_path)
-            )
-        return "No processed video available", 404
-    
-    @app.route('/processing_status')
-    def processing_status():
-        """Check if video processing is complete"""
-        return jsonify({'complete': video_processing_complete})
+
 
 
 # ============================================
@@ -303,7 +384,7 @@ def generate_frames(app, source='camera'):
     
     Args:
         app: Flask application instance
-        source (str): 'camera' or 'upload'
+        source (str): 'camera' for live feed
     """
     global active_threat, detection_logs
     
@@ -311,6 +392,8 @@ def generate_frames(app, source='camera'):
     camera_service = app.camera_service
     recorder_service = app.recorder_service
     
+
+    # Camera mode (existing logic)
     while True:
         if source == 'camera':
             # Read from camera
@@ -404,64 +487,3 @@ def handle_threat_detection(app, frame, threat_type, yolo_service, camera_servic
     
     threading.Thread(target=record_video, daemon=True).start()
 
-
-def process_uploaded_video(app, video_path, filename):
-    """Process uploaded video file"""
-    global current_processed_path, video_processing_complete, detection_logs
-    
-    try:
-        cap = cv2.VideoCapture(video_path)
-        
-        if not cap.isOpened():
-            print(f"❌ Failed to open video: {video_path}")
-            return
-        
-        # Prepare output
-        output_filename = f"processed_{filename}"
-        output_path = os.path.join(app.config['PROCESSED_FOLDER'], output_filename)
-        
-        # Video writer setup
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        fps = int(cap.get(cv2.CAP_PROP_FPS)) or 20
-        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        
-        video_writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-        
-        frame_count = 0
-        
-        while True:
-            success, frame = cap.read()
-            
-            if not success:
-                break
-            
-            # YOLO inference
-            results = app.yolo_service.run_inference(frame)
-            detections = app.yolo_service.get_detections(results)
-            annotated_frame = app.yolo_service.annotate_frame(results)
-            
-            # Check threats
-            is_threat, threat_type = ThreatLogic.check_threat_conditions(detections)
-            
-            if is_threat:
-                timestamp = datetime.now().strftime('%H:%M:%S')
-                log_entry = f"[Frame {frame_count}] 🚨 {threat_type}"
-                detection_logs.append(log_entry)
-                
-                if len(detection_logs) > 50:
-                    detection_logs.pop(0)
-            
-            video_writer.write(annotated_frame)
-            frame_count += 1
-        
-        cap.release()
-        video_writer.release()
-        
-        current_processed_path = output_path
-        video_processing_complete = True
-        
-        print(f"✅ Video processing complete: {output_path}")
-        
-    except Exception as e:
-        print(f"❌ Error processing video: {e}")

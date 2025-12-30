@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Sentinel AI - Forensic Mode</title>
-    
+    <title>AGKS - Akıllı Gözetim Koruma Sistemi</title>
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- External CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -17,12 +18,16 @@
 <body>
     <!-- Hidden audio element for alarm -->
     <audio id="alarm-sound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUBIWU6nm8bVlHgU7k9n00H0pBiV7yPDglEILFGS56OyhUxEMTKXl8L9pJAU1jtv01n8oBSyCz/PZiTUGGWS56+mgUxQNUavi8bZmHgQ7k9j01H4qBSV8y/DglUILFGW5n==" />
+        <source
+            src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUBIWU6nm8bVlHgU7k9n00H0pBiV7yPDglEILFGS56OyhUxEMTKXl8L9pJAU1jtv01n8oBSyCz/PZiTUGGWS56+mgUxQNUavi8bZmHgQ7k9j01H4qBSV8y/DglUILFGW5n==" />
     </audio>
 
     <!-- Header -->
     <header class="header">
-        <h1>Security Sentinel AI<span style="font-size: 0.6em; margin-left: 0.5rem;">Forensic Mode</span></h1>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AGKS Logo" style="height: 50px;">
+            <h1 style="font-size: 1.5rem;">Akıllı Gözetim Koruma Sistemi</h1>
+        </div>
         <div class="header-badges">
             <div class="status-badge" id="system-status">
                 <div class="status-indicator"></div>
@@ -39,20 +44,15 @@
     <div class="container">
         <!-- Welcome Screen (Landing Page) -->
         <div class="welcome-screen" id="welcome-screen">
-            <h2>Welcome to Security Sentinel AI</h2>
-            <p>Choose your monitoring mode to get started. Live webcam for real-time surveillance or upload a video file for forensic analysis.</p>
+            <h2>Hoş Geldiniz - AGKS</h2>
+            <p>Choose your monitoring mode to get started. Live webcam for real-time surveillance or view saved forensic
+                videos.</p>
 
             <div class="mode-selection">
                 <div class="mode-card webcam" onclick="startMode('webcam')">
                     <div class="mode-card-icon">📹</div>
                     <h3>Live Webcam</h3>
                     <p>Real-time threat detection with forensic video recording</p>
-                </div>
-
-                <div class="mode-card upload" onclick="startMode('upload')">
-                    <div class="mode-card-icon">📤</div>
-                    <h3>Upload Video</h3>
-                    <p>Process pre-recorded videos with YOLO detection overlay</p>
                 </div>
 
                 <div class="mode-card upload" onclick="window.location.href='/gallery'">
@@ -83,53 +83,10 @@
                 </div>
             </section>
         </div>
-
-        <!-- Upload Mode Work Area -->
-        <div class="work-area" id="upload-area">
-            <button class="back-button" onclick="backToHome()">← Back to Home</button>
-
-            <!-- Upload Section -->
-            <section class="upload-section">
-                <h2>Upload Video for Analysis</h2>
-                <div class="file-input-wrapper">
-                    <input type="file" id="video-file" class="file-input" accept=".mp4,.avi,.mov,.mkv" onchange="handleFileSelect(event)">
-                    <label for="video-file" class="file-input-label">
-                        📁 Click to select video file (MP4, AVI, MOV, MKV)
-                    </label>
-                    <div class="file-name" id="file-name"></div>
-                </div>
-                <button class="upload-btn" id="upload-btn" onclick="uploadVideo()" disabled>
-                    Upload & Process Video
-                </button>
-                <div class="upload-status" id="upload-status"></div>
-            </section>
-
-            <!-- Video Playback Section -->
-            <section class="video-section" style="display: none;" id="playback-section">
-                <h2 id="video-title">Processing Uploaded Video</h2>
-                <div class="video-container">
-                    <img id="upload-video-feed" alt="Processing Video">
-                </div>
-
-                <!-- Download Processed Video -->
-                <div class="download-section" id="download-section">
-                    <a href="/download_processed" class="download-btn" download>
-                        ⬇️ Download Processed Video
-                    </a>
-                </div>
-            </section>
-
-            <!-- Logs for Upload Mode -->
-            <section class="logs-section">
-                <h2>Detection Logs</h2>
-                <div class="logs-container" id="upload-logs-container">
-                    <div class="log-empty">Upload a video to begin...</div>
-                </div>
-            </section>
-        </div>
     </div>
 
     <!-- External JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
+
 </html>
