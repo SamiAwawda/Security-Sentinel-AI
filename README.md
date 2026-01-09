@@ -259,7 +259,7 @@ CHAT_ID = "your_chat_id"
 | `/gallery` | GET | Video Gallery |
 | `/settings` | GET | Settings Page |
 
-### API Routes
+### API Route
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
