@@ -19,12 +19,12 @@ class ThreatLogic:
         """
         Analyze detections and identify threats
         
-        UPDATED LOGIC:
-        - Balaclava (masked face) → DANGER (immediate threat)
-        - Person + Gun → DANGER (armed person)
-        - Person + Knife → DANGER (person with weapon)
-        - Person alone → NORMAL
-        - Gun/Knife alone → NORMAL (no threat without person)
+        UPDATED LOGIC (Turkish class names):
+        - Kar Maskesi (masked face) → DANGER (immediate threat)
+        - İnsan + Silah → DANGER (armed person)
+        - İnsan + Bıçak → DANGER (person with weapon)
+        - İnsan alone → NORMAL
+        - Silah/Bıçak alone → NORMAL (no threat without person)
         
         Args:
             detections (list): List of detection dictionaries
@@ -36,21 +36,21 @@ class ThreatLogic:
         # Extract detected class names
         detected_classes = [det['class'] for det in detections]
         
-        # Priority 1: Balaclava (masked face) - ALWAYS A THREAT
+        # Priority 1: Kar Maskesi (masked face) - ALWAYS A THREAT
         # Masked individuals are suspicious regardless of other detections
-        if 'Balaclava' in detected_classes:
-            return True, "Masked Person Detected"
+        if 'Kar Maskesi' in detected_classes:
+            return True, "Maskeli Kisi Tespit Edildi"
         
         # Check if person is present for weapon threats
-        has_person = 'Person' in detected_classes
+        has_person = 'Insan' in detected_classes
         
-        # Priority 2: Person + Gun (armed individual)
-        if has_person and 'Gun' in detected_classes:
-            return True, "Armed Person Detected"
+        # Priority 2: Insan + Silah (armed individual)
+        if has_person and 'Silah' in detected_classes:
+            return True, "Silahli Kisi Tespit Edildi"
         
-        # Priority 3: Person + Knife (person with weapon)
-        if has_person and 'Knife' in detected_classes:
-            return True, "Person with Knife"
+        # Priority 3: Insan + Bicak (person with weapon)
+        if has_person and 'Bicak' in detected_classes:
+            return True, "Bicakli Kisi Tespit Edildi"
         
         # No threat conditions met
         return False, None
@@ -68,12 +68,12 @@ class ThreatLogic:
         """
         # ALL THREATS ARE HIGH SEVERITY
         severity_map = {
-            "Masked Person Detected": "High",
-            "Armed Person Detected": "High",
-            "Person with Knife": "High"
+            "Maskeli Kisi Tespit Edildi": "Yuksek",
+            "Silahli Kisi Tespit Edildi": "Yuksek",
+            "Bicakli Kisi Tespit Edildi": "Yuksek"
         }
         
-        return severity_map.get(threat_type, "High")
+        return severity_map.get(threat_type, "Yuksek")
     
     @staticmethod
     def should_send_telegram_alert(threat_type):
@@ -88,9 +88,9 @@ class ThreatLogic:
         """
         # Send alerts for all person + threat combinations
         high_priority = [
-            "Masked Person Detected",
-            "Armed Person Detected",
-            "Person with Knife"
+            "Maskeli Kisi Tespit Edildi",
+            "Silahli Kisi Tespit Edildi",
+            "Bicakli Kisi Tespit Edildi"
         ]
         return threat_type in high_priority
     
@@ -106,12 +106,12 @@ class ThreatLogic:
             str: Formatted threat message
         """
         messages = {
-            "Masked Person Detected": "🚨 CRITICAL: Masked individual detected!",
-            "Armed Person Detected": "🚨 CRITICAL: Armed person detected!",
-            "Person with Knife": "⚠️ HIGH ALERT: Person with knife detected!"
+            "Maskeli Kisi Tespit Edildi": "KRITIK: Maskeli kisi tespit edildi!",
+            "Silahli Kisi Tespit Edildi": "KRITIK: Silahli kisi tespit edildi!",
+            "Bicakli Kisi Tespit Edildi": "YUKSEK ALARM: Bicakli kisi tespit edildi!"
         }
         
-        return messages.get(threat_type, f"⚠️ Threat detected: {threat_type}")
+        return messages.get(threat_type, f"Tehdit tespit edildi: {threat_type}")
     
     @staticmethod
     def get_detection_summary(detections):

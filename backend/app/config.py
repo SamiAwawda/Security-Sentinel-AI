@@ -18,7 +18,8 @@ class Config:
     # MODEL CONFIGURATION
     # ============================================
     MODEL_PATH = "models/best.pt"
-    INFERENCE_SIZE = 320  # Optimized for real-time performance
+    INFERENCE_SIZE = 640  # Increased for better detection accuracy
+    CONFIDENCE_THRESHOLD = 0.15  # Lower threshold to catch more detections
     
     # ============================================
     # CAMERA CONFIGURATION

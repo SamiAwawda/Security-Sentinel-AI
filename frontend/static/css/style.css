@@ -217,10 +217,7 @@ a:hover {
   gap: var(--spacing-xs);
 }
 
-.nav-logo::before {
-  content: '🔐';
-  font-size: 1.75rem;
-}
+
 
 .nav-links {
   display: flex;

@@ -41,8 +41,9 @@ class CameraService:
             self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
             self.camera.set(cv2.CAP_PROP_FPS, 30)
             
-            # Disable auto-exposure for consistent frame rate
-            self.camera.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)
+            # Enable auto-exposure for proper brightness
+            # 0.75 = auto mode, 0.25 = manual mode
+            self.camera.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.75)
             
             # Set buffer size to 1 to reduce latency
             self.camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)

@@ -54,11 +54,6 @@ def register_routes(app):
         """Serve video gallery page"""
         return render_template('gallery.html')
     
-    @app.route('/settings')
-    def settings():
-        """Serve settings page"""
-        return render_template('settings.html')
-
     
     # ============================================
     # VIDEO STREAMING
@@ -299,21 +294,6 @@ def register_routes(app):
                             'folder': 'alerts'
                         })
             
-            # Get all processed videos
-            if os.path.exists(app.config['PROCESSED_FOLDER']):
-                for filename in os.listdir(app.config['PROCESSED_FOLDER']):
-                    if filename.endswith(('.mp4', '.avi')):
-                        filepath = os.path.join(app.config['PROCESSED_FOLDER'], filename)
-                        file_stats = os.stat(filepath)
-                        
-                        videos.append({
-                            'filename': filename,
-                            'size': file_stats.st_size,
-                            'size_mb': round(file_stats.st_size / (1024 * 1024), 2),
-                            'created': datetime.fromtimestamp(file_stats.st_ctime).strftime('%Y-%m-%d %H:%M:%S'),
-                            'folder': 'processed'
-                        })
-            
             # Sort by creation time (newest first)
             videos.sort(key=lambda x: x['created'], reverse=True)
             
@@ -328,15 +308,10 @@ def register_routes(app):
     @app.route('/video/<folder>/<filename>')
     def serve_video(folder, filename):
         """Serve a video file for playback"""
-        if folder not in ['alerts', 'processed']:
+        if folder != 'alerts':
             return "Invalid folder", 400
         
-        folder_map = {
-            'alerts': app.config['ALERT_VIDEO_FOLDER'],
-            'processed': app.config['PROCESSED_FOLDER']
-        }
-        
-        video_path = os.path.join(folder_map[folder], secure_filename(filename))
+        video_path = os.path.join(app.config['ALERT_VIDEO_FOLDER'], secure_filename(filename))
         
         if not os.path.exists(video_path):
             return "Video not found", 404
@@ -347,15 +322,10 @@ def register_routes(app):
     def delete_video(folder, filename):
         """Delete a video file"""
         try:
-            if folder not in ['alerts', 'processed']:
+            if folder != 'alerts':
                 return jsonify({'error': 'Invalid folder'}), 400
             
-            folder_map = {
-                'alerts': app.config['ALERT_VIDEO_FOLDER'],
-                'processed': app.config['PROCESSED_FOLDER']
-            }
-            
-            video_path = os.path.join(folder_map[folder], secure_filename(filename))
+            video_path = os.path.join(app.config['ALERT_VIDEO_FOLDER'], secure_filename(filename))
             
             if not os.path.exists(video_path):
                 return jsonify({'error': 'Video not found'}), 404
